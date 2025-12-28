@@ -1,5 +1,6 @@
 package com.datn.viettel.entities.core;
 
+
 import com.datn.viettel.entities.core.base.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,8 +19,8 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "mobile_packages")
-public class MobilePackage extends BaseEntity {
+@Table(name = "ftth_packages")
+public class FtthPackage extends BaseEntity {
     @Id
     @UuidGenerator
     @Column(name = "id", columnDefinition = "uuid", nullable = false)
@@ -35,28 +36,22 @@ public class MobilePackage extends BaseEntity {
     private String code;
 
     @Size(max = 100)
-    @Column(name = "money_fee", length = 100)
-    private String moneyFee;
+    @Column(name = "price", length = 100)
+    private String price;
 
     @Size(max = 100)
-    @Column(name = "data_free", length = 100)
-    private String dataFree;
+    @Column(name = "promotion_price", length = 100)
+    private String promotionPrice;
 
-    @Size(max = 255)
-    @Column(name = "expire_value")
-    private String expireValue;
-
-    @Size(max = 255)
-    @Column(name = "expire_type")
-    private String expireType;
-
-    @Size(max = 255)
-    @Column(name = "short_des_en")
+    @Size(max = 4000)
+    @Column(name = "short_des_en", length = 4000)
     private String shortDesEn;
 
-    @Size(max = 255)
-    @Column(name = "short_des_vi")
+
+    @Size(max = 4000)
+    @Column(name = "short_des_vi", length = 4000)
     private String shortDesVi;
+
 
     @Column(name = "priority")
     private Short priority;
@@ -68,4 +63,21 @@ public class MobilePackage extends BaseEntity {
     @NotNull
     @Column(name = "is_embed", nullable = false)
     private Short isEmbed;
+
+    @Size(max = 200)
+    @Column(name = "speed_network", length = 200)
+    private String speedNetwork;
+
+    @Column(name = "group_name", length = Integer.MAX_VALUE)
+    private String groupName;
+
+    @Column(name = "cycle", length = Integer.MAX_VALUE)
+    private String cycle;
+
+    @Column(name = "promotion_en", length = Integer.MAX_VALUE)
+    private String promotionEn;
+
+    @Column(name = "promotion_vi", length = Integer.MAX_VALUE)
+    private String promotionVi;
+
 }
