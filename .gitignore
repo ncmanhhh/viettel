@@ -1,24 +1,107 @@
-# Compiled class file
+############################
+# Java / Spring Boot
+############################
 *.class
 
-# Log file
+# Logs
 *.log
+logs/
+log/
 
-# BlueJ files
-*.ctxt
+# JVM crash logs
+hs_err_pid*
+replay_pid*
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+############################
+# Build tools
+############################
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
 
-# Package Files #
+# Gradle
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+############################
+# Package files
+############################
 *.jar
 *.war
-*.nar
 *.ear
+*.nar
 *.zip
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+############################
+# Spring Boot
+############################
+# Application config (tùy dự án, thường KHÔNG commit)
+application-*.yml
+application-*.yaml
+application-*.properties
+
+# Generated files
+out/
+
+############################
+# IDEs
+############################
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.factorypath
+
+# VS Code
+.vscode/
+
+############################
+# OS
+############################
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Linux
+*~
+
+############################
+# Environment / Secrets
+############################
+.env
+.env.*
+*.pem
+*.key
+*.crt
+
+############################
+# Lombok
+############################
+lombok.config
+
+############################
+# Node (nếu có frontend)
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+############################
+# Docker
+############################
+docker-data/
