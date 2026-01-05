@@ -46,9 +46,6 @@ import java.util.UUID;
         @Column(name = "promotion_price", length = 100)
         private String promotionPrice;
 
-        @Size(max = 500)
-        @Column(name = "des_en")
-        private String desEn;
 
         @Size(max = 500)
         @Column(name = "des_vi")

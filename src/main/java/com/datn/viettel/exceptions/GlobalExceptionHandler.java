@@ -15,7 +15,7 @@ import java.sql.Timestamp;
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends RuntimeException {
 
     @ExceptionHandler(LogicException.class)
     public ResponseEntity<ExecutionResult<Object>> handleLogic(LogicException ex, HttpServletRequest http) {

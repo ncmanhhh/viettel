@@ -36,4 +36,11 @@ public class ResponseMessage {
         }
     }
 
+    public static final class SystemConfig {
+        public static final String MISSING_CODE = "system.config.missing.code";
+
+        private SystemConfig() {
+        }
+    }
+
 }

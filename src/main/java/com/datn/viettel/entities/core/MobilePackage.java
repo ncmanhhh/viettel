@@ -51,10 +51,6 @@ public class MobilePackage extends BaseEntity {
     private String expireType;
 
     @Size(max = 255)
-    @Column(name = "short_des_en")
-    private String shortDesEn;
-
-    @Size(max = 255)
     @Column(name = "short_des_vi")
     private String shortDesVi;
 
@@ -68,4 +64,8 @@ public class MobilePackage extends BaseEntity {
     @NotNull
     @Column(name = "is_embed", nullable = false)
     private Short isEmbed;
+
+    @Size(max = 4000)
+    @Column(name = "full_des_vi", length = 4000)
+    private String fullDesVi;
 }

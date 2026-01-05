@@ -43,9 +43,6 @@ public class FtthPackage extends BaseEntity {
     @Column(name = "promotion_price", length = 100)
     private String promotionPrice;
 
-    @Size(max = 4000)
-    @Column(name = "short_des_en", length = 4000)
-    private String shortDesEn;
 
 
     @Size(max = 4000)
@@ -65,17 +62,20 @@ public class FtthPackage extends BaseEntity {
     private Short isEmbed;
 
     @Size(max = 200)
-    @Column(name = "speed_network", length = 200)
-    private String speedNetwork;
+    @Column(name = "speed_in_text", length = 200)
+    private String speedInText;
+
+    @Column(name = "speed", length = 200)
+    private int speed;
 
     @Column(name = "group_name", length = Integer.MAX_VALUE)
     private String groupName;
 
+    @Column(name = "cycle_raw", length = Integer.MAX_VALUE)
+    private String cycleRaw;
+
     @Column(name = "cycle", length = Integer.MAX_VALUE)
     private String cycle;
-
-    @Column(name = "promotion_en", length = Integer.MAX_VALUE)
-    private String promotionEn;
 
     @Column(name = "promotion_vi", length = Integer.MAX_VALUE)
     private String promotionVi;

@@ -3,6 +3,7 @@ package com.datn.viettel.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
 
 import java.util.Map;
 import java.util.Objects;
@@ -86,5 +87,16 @@ public class DataUtils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static String isBlank(String str, String defaultValue) {
+        return isNullOrBlank(str) ? defaultValue : str;
+    }
+
+    public static String cleanHtml(String input) {
+        if (isNullOrBlank(input)) {
+            return "";
+        }
+        return Jsoup.parse(input).text();
     }
 }

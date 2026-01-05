@@ -58,8 +58,10 @@ public class EmbedServiceImpl implements EmbedService {
     @NotNull
     private static Map<String, Object> buildContentBodyMobilePackage(MobilePackage mobilePackage) {
         Map<String, Object> description = Map.of(
-                "en", Objects.isNull(mobilePackage.getShortDesEn()) ? "" : mobilePackage.getShortDesEn(),
                 "vi", Objects.isNull(mobilePackage.getShortDesVi()) ? "" : mobilePackage.getShortDesVi()
+        );
+        Map<String, Object> fullDescription = Map.of(
+                "vi", Objects.isNull(mobilePackage.getFullDesVi()) ? "" : mobilePackage.getFullDesVi()
         );
         Map<String, Object> content = new HashMap<>();
         content.put("id", mobilePackage.getCode());
@@ -70,54 +72,48 @@ public class EmbedServiceImpl implements EmbedService {
         content.put("expire_type", mobilePackage.getExpireType());
         content.put("priority", mobilePackage.getPriority());
         content.put("description", description);
+        content.put("full_description", fullDescription);
         return content;
     }
 
 
     @NotNull
-    private static Map<String, Object> buildContentBodyFtthPackage(FtthPackage ftth) {
+    private static Map<String, Object> buildContentBodyFtthPackage(FtthPackage ftthPackage) {
         Map<String, Object> description = Map.of(
-                "en", DataUtils.parseString(ftth.getShortDesEn(), ""),
-                "vi", DataUtils.parseString(ftth.getShortDesVi(), "")
+                "vi", Objects.isNull(ftthPackage.getShortDesVi()) ? "" : ftthPackage.getShortDesVi()
         );
-
         Map<String, Object> promotion = Map.of(
-                "en", DataUtils.parseString(ftth.getPromotionEn(), ""),
-                "vi", DataUtils.parseString(ftth.getPromotionVi(), "")
+                "vi", Objects.isNull(ftthPackage.getPromotionVi()) ? "" : ftthPackage.getPromotionVi()
         );
-
         Map<String, Object> content = new HashMap<>();
-        content.put("id", ftth.getCode());
-        content.put("code", ftth.getCode());
-        content.put("group_name", DataUtils.parseString(ftth.getGroupName(), ""));
-        content.put("cycle", ftth.getCycle());
-        content.put("price", DataUtils.parseLong(ftth.getPrice()));
-        content.put("promotion_price", DataUtils.parseLong(ftth.getPromotionPrice()));
-        content.put("priority", ftth.getPriority() == null ? 0 : ftth.getPriority());
-        content.put("speed_network", DataUtils.parseString(ftth.getSpeedNetwork(), ""));
+        content.put("id", ftthPackage.getCode());
+        content.put("code", ftthPackage.getCode());
+        content.put("group_name", ftthPackage.getGroupName());
+        content.put("speed_in_text", ftthPackage.getSpeedInText());
+        content.put("speed", ftthPackage.getSpeed());
+        content.put("cycle", ftthPackage.getCycle());
+        content.put("cycle_raw", ftthPackage.getCycleRaw());
+        content.put("price", DataUtils.parseLong(ftthPackage.getPrice()));
+        content.put("promotion_price", DataUtils.parseLong(ftthPackage.getPromotionPrice()));
+        content.put("priority", ftthPackage.getPriority());
         content.put("description", description);
         content.put("promotion", promotion);
-
         return content;
     }
 
     @NotNull
-    private Map<String, Object> buildContentBodySim(Sim sim) {
-        Map<String, Object> desc = new java.util.LinkedHashMap<>();
-        desc.put("en", DataUtils.parseString(sim.getDesEn(), ""));
-        desc.put("vi", DataUtils.parseString(sim.getDesVi(), ""));
-
-        Map<String, Object> content = new java.util.LinkedHashMap<>();
-        content.put("id", sim.getId() != null ? sim.getId().toString() : null);
+    private static Map<String, Object> buildContentBodySim(Sim sim) {
+        Map<String, Object> content = new HashMap<>();
+        content.put("id", sim.getPhoneNumber());
         content.put("phone_number", sim.getPhoneNumber());
         content.put("sim_type", sim.getSimType());
         content.put("number_type", sim.getNumberType());
-
-        // price/promotion_price: entity là String => lưu cả raw string
-        content.put("price", sim.getPrice());
-        content.put("promotion_price", sim.getPromotionPrice());
-
-        content.put("description", desc);
+        content.put("price", DataUtils.parseLong(sim.getPrice()));
+        content.put("promotion_price", DataUtils.parseLong(sim.getPromotionPrice()));
+        Map<String, Object> description = Map.of(
+                "vi", Objects.isNull(sim.getDesVi()) ? "" : sim.getDesVi()
+        );
+        content.put("description", description);
         return content;
     }
 
@@ -146,8 +142,6 @@ public class EmbedServiceImpl implements EmbedService {
                 contentFull = contentFull.replaceAll("(?m)(\\r?\\n){2,}", "\n");
 
                 float[] embedding = aiService.embeddingVectorV2(contentFull);
-
-                Thread.sleep(500);
 
                 if (embedding == null) {
                     log.error("Failed to get embedding for MobilePackage with ID: {}", mobilePackage.getCode());
@@ -184,61 +178,7 @@ public class EmbedServiceImpl implements EmbedService {
 
     }
 
-//    @Override
-//    @Transactional(rollbackFor = Exception.class)
-//    public void embedMobilePackagesV2() {
-//        List<MobilePackage> mobilePackages = mobilePackageRepository.findAll();
-//        if (!mobilePackages.isEmpty()) {
-//            List<Long> productIds = mobilePackages.stream()
-//                    .filter(mobilePackage -> mobilePackage.getStatus().equals(Constants.Status.INACTIVE))
-//                    .map(MobilePackage::getProductId)
-//                    .collect(Collectors.toList());
-//            if (!productIds.isEmpty()) {
-//                deleteVectorStoreByProductId(environment.getProperty("scheduled.embedding.mobile-package.index"), productIds);
-//            }
-//            for (MobilePackage mobilePackage : mobilePackages) {
-//                if (mobilePackage.getStatus().equals(Constants.Status.INACTIVE) || mobilePackage.getIsEmbed().equals(Constants.Status.ACTIVE)) {
-//                    continue;
-//                }
-//                try {
-//                    String contentFull = buildContentEmbedMobilePackage(mobilePackage);
-//                    contentFull = contentFull.replaceAll("(?m)(\\r?\\n){2,}", "\n");
-//                    float[] embedding = aiService.embeddingVectorV2(contentFull);
-//                    if (embedding != null) {
-//                        Map<String, Object> content = buildContentBodyMobilePackage(mobilePackage);
-//                        String vectorString = Arrays.toString(embedding);
-//                        String metadataJson = convertMapToJsonString(content);
-//                        LocalDateTime now = LocalDateTime.now();
-//                        vectorStoreRepository.insertVectorStore(
-//                                mobilePackage.getId(),
-//                                environment.getProperty("scheduled.embedding.mobile-package.index"),
-//                                contentFull,
-//                                metadataJson,
-//                                vectorString,
-//                                now,
-//                                now,
-//                                "PROCESS",
-//                                "PROCESS"
-//                        );
-//                        Map<String, Object> documentBody = Map.of(
-//                                "id", mobilePackage.getProductId().toString(),
-//                                "content", content,
-//                                "contentFull", contentFull,
-//                                "contentVector", embedding
-//                        );
-//                        elasticsearchService.createDocument(environment.getProperty("scheduled.embedding.mobile-package.index"),
-//                                String.valueOf(mobilePackage.getProductId()), documentBody);
-//                        mobilePackage.setIsEmbed(Constants.Status.ACTIVE);
-//                        mobilePackageRepository.save(mobilePackage);
-//                    } else {
-//                        log.error("Failed to get embedding for MobilePackage with ID - v2: {}", mobilePackage.getId());
-//                    }
-//                } catch (Exception e) {
-//                    log.error("Error embedding MobilePackage with ID - v2: {} - {}", mobilePackage.getId(), e.getMessage());
-//                }
-//            }
-//        }
-//    }
+
 @Override
 @Transactional(rollbackFor = Exception.class)
 public void embedMobilePackagesV2() {
@@ -255,7 +195,18 @@ public void embedMobilePackagesV2() {
             .toList();
 
     if (!inactiveIds.isEmpty()) {
+
+        // 1️⃣ Xoá vector_store
         deleteVectorStoreByProductId(index, inactiveIds);
+
+        // 2️⃣ Xoá Elasticsearch theo ES _id
+        // ⚠️ Bạn đang dùng ES id = productId
+        List<String> inactiveEsIds = mobilePackages.stream()
+                .filter(p -> p.getStatus().equals(Constants.Status.INACTIVE))
+                .map(p -> p.getId().toString())
+                .toList();
+
+        deleteDocuments(index, inactiveEsIds);
     }
 
     // 2) Embed + lưu vector_store(pgvector) + lưu ES
@@ -284,12 +235,12 @@ public void embedMobilePackagesV2() {
 
             VectorStore vs = new VectorStore();
             vs.setProdId(mobilePackage.getId());          // ✅ UUID
-            vs.setProdType(index);                        // hoặc "MOBILE" nếu bạn muốn tách logical type
+            vs.setProdType(index);
             vs.setContent(contentFull);
             vs.setMetadata(content);                      // ✅ Map -> jsonb
             vs.setEmbVector(embedding);                   // ✅ float[] -> vector(768)
 
-            // BaseEntity audit (nếu bạn không có auditing tự set)
+            // BaseEntity audit
             vs.setCreatedAt(now);
             vs.setUpdatedAt(now);
             vs.setCreatedBy("PROCESS");
@@ -305,10 +256,11 @@ public void embedMobilePackagesV2() {
                     "contentVector", embedding
             );
 
-            // Khuyến nghị: createDocument nên là upsert (/ _doc /id) để chạy lại không lỗi 409
+            String esId = mobilePackage.getId().toString();
+
             elasticsearchService.createDocument(
                     index,
-                    String.valueOf(mobilePackage.getProductId()),
+                    esId,
                     documentBody
             );
 
@@ -322,65 +274,7 @@ public void embedMobilePackagesV2() {
     }
 }
 
-//    @Override
-//    @Transactional(rollbackFor = Exception.class)
-//    public void embedFtthPackages() {
-//        List<FtthPackage> ftthPackages = ftthPackageRepository.findAll();
-//        if (ftthPackages.isEmpty()) {
-//            return;
-//        }
-//        List<String> productCodes = ftthPackages.stream()
-//                .filter(ftthPackage -> ftthPackage.getStatus().equals(Constants.Status.INACTIVE))
-//                .map(FtthPackage::getCode)
-//                .collect(Collectors.toList());
-//        if (!productCodes.isEmpty()) {
-//            deleteDocuments(environment.getProperty("scheduled.embedding.ftth-package.index"), productCodes);
-//        }
-//        for (FtthPackage ftthPackage : ftthPackages) {
-//            if (ftthPackage.getStatus().equals(Constants.Status.INACTIVE)
-//                    || ftthPackage.getIsEmbed().equals(Constants.Status.ACTIVE)) {
-//                continue;
-//            }
-//
-//            try {
-//                String contentFull = buildContentEmbedFtthPackage(ftthPackage);
-//                contentFull = contentFull.replaceAll("(?m)(\\r?\\n){2,}", "\n");
-//
-//                float[] embedding = aiService.embeddingVectorV2(contentFull);
-//                if (embedding == null) {
-//                    log.error("Failed to get embedding for FTTH with ID: {}", ftthPackage.getCode());
-//                    continue;
-//                }
-//
-//                Map<String, Object> content = buildContentBodyFtthPackage(ftthPackage);
-//                Map<String, Object> documentBody = Map.of(
-//                        "id", ftthPackage.getCode(),
-//                        "content", content,
-//                        "contentFull", contentFull,
-//                        "contentVector", embedding
-//                );
-//
-//                boolean created = elasticsearchService.createDocument(
-//                        environment.getProperty("scheduled.embedding.ftth-package.index"),
-//                        ftthPackage.getCode(),
-//                        documentBody
-//                );
-//
-//                if (created) {
-//                    ftthPackage.setIsEmbed(Constants.Status.ACTIVE);
-//                    ftthPackageRepository.save(ftthPackage);
-//                } else {
-//                    log.error("Failed to create document in Elasticsearch for FTTH with ID: {}",
-//                            ftthPackage.getCode());
-//                }
-//
-//            } catch (Exception e) {
-//                log.error("Error embedding FTTH with ID: {} - {}",
-//                        ftthPackage.getCode(), e.getMessage(), e);
-//            }
-//        }
-//
-//    }
+
 @Override
 @Transactional(rollbackFor = Exception.class)
 public void embedFtthPackages() {
@@ -400,15 +294,13 @@ public void embedFtthPackages() {
     if (!inactiveIds.isEmpty()) {
         deleteVectorStoreByProductId(index, inactiveIds);
 
-        // (tuỳ bạn) nếu bạn vẫn muốn xoá luôn ES documents cho INACTIVE theo code:
-        List<String> inactiveCodes = ftthPackages.stream()
+        // Xoá ES theo code
+        List<String> inactiveEsIds = ftthPackages.stream()
                 .filter(p -> p.getStatus().equals(Constants.Status.INACTIVE))
-                .map(FtthPackage::getCode)
-                .filter(Objects::nonNull)
+                .map(p -> p.getId().toString())
                 .toList();
-        if (!inactiveCodes.isEmpty()) {
-            deleteDocuments(index, inactiveCodes);
-        }
+
+        deleteDocuments(index, inactiveEsIds);
     }
 
     // 2) Embed + lưu vector_store(pgvector) + lưu ES
@@ -432,15 +324,14 @@ public void embedFtthPackages() {
             LocalDateTime now = LocalDateTime.now();
 
             // ✅ 2.1 Upsert vào vector_store (Postgres pgvector)
-            // Xoá bản cũ để tránh trùng (khuyến nghị unique (prod_id, prod_type))
             vectorStoreRepository.deleteByProdIdAndProdType(ftthPackage.getId(), index);
 
             VectorStore vs = new VectorStore();
-            vs.setProdId(ftthPackage.getId());          // ✅ UUID
-            vs.setProdType(index);                      // ✅ dùng index làm type (giống Mobile)
+            vs.setProdId(ftthPackage.getId());
+            vs.setProdType(index);
             vs.setContent(contentFull);
-            vs.setMetadata(content);                    // ✅ Map -> jsonb
-            vs.setEmbVector(embedding);                 // ✅ float[] -> vector(768)
+            vs.setMetadata(content);
+            vs.setEmbVector(embedding);
 
             // BaseEntity audit
             vs.setCreatedAt(now);
@@ -465,7 +356,7 @@ public void embedFtthPackages() {
 
             // ✅ 2.2 Lưu lên Elasticsearch
             // id: ưu tiên dùng code vì FTTH code thường unique và dễ đọc
-            String esId = ftthPackage.getCode() != null ? ftthPackage.getCode() : String.valueOf(ftthPackage.getId());
+            String esId = ftthPackage.getId().toString();
 
             Map<String, Object> documentBody = Map.of(
                     "id", esId,
@@ -492,245 +383,297 @@ public void embedFtthPackages() {
 }
 
 
+
 @Override
 @Transactional(rollbackFor = Exception.class)
 public void embedSims() {
-
-    // ✅ 0) Lấy toàn bộ sims (giữ style giống bạn), nhưng khuyến nghị query theo điều kiện như dưới
     List<Sim> sims = simRepository.findAll();
-    if (sims == null || sims.isEmpty()) return;
-
-    String index = environment.getProperty("scheduled.embedding.sim.index");
-
-    // 1) Xoá vector_store + ES cho record INACTIVE
-    List<UUID> inactiveIds = sims.stream()
-            .filter(s -> s.getStatus().equals(Constants.Status.INACTIVE))
-            .map(Sim::getId)
-            .filter(Objects::nonNull)
-            .toList();
-
-    if (!inactiveIds.isEmpty()) {
-        // ✅ xóa vector store theo UUID
-        deleteVectorStoreByProductId(index, inactiveIds);
+    if (sims.isEmpty()) {
+        return;
     }
-
-    List<String> inactivePhones = sims.stream()
-            .filter(s -> s.getStatus().equals(Constants.Status.INACTIVE))
+    List<String> productPhoneNumbers = sims.stream()
+            .filter(sim -> sim.getStatus().equals(Constants.Status.INACTIVE))
             .map(Sim::getPhoneNumber)
-            .filter(Objects::nonNull)
-            .toList();
-
-    if (!inactivePhones.isEmpty()) {
-        // ✅ xoá ES theo phone_number (id ES bạn dùng phoneNumber)
-        deleteDocuments(index, inactivePhones);
+            .collect(Collectors.toList());
+    if (!productPhoneNumbers.isEmpty()) {
+        deleteDocuments(environment.getProperty("scheduled.embedding.sim.index"), productPhoneNumbers);
     }
-
-    // 2) Embed + lưu vector_store + lưu ES
-    for (Sim sim : sims) {
-
-        // chỉ embed record ACTIVE và CHƯA EMBED
-        if (sim.getStatus().equals(Constants.Status.INACTIVE)
-                || sim.getIsEmbed().equals(Constants.Status.ACTIVE)) {
-            continue;
+    List<Sim> simsToEmbed = sims.stream()
+            .filter(sim -> !sim.getStatus().equals(Constants.Status.INACTIVE) &&
+                    !sim.getIsEmbed().equals(Constants.Status.ACTIVE))
+            .collect(Collectors.toList());
+    if (simsToEmbed.isEmpty()) {
+        log.info("No sims to embed");
+        return;
+    }
+    log.info("Starting embedding process for {} sims", simsToEmbed.size());
+    int batchSize = 500;
+    List<List<Sim>> batches = partitionSimList(simsToEmbed, batchSize);
+    int totalBatches = batches.size();
+    int successCount = 0;
+    int failureCount = 0;
+    for (int i = 0; i < totalBatches; i++) {
+        List<Sim> batch = batches.get(i);
+        log.info("Processing batch {}/{} with {} sims", i + 1, totalBatches, batch.size());
+        List<Sim> batchResults = batch.parallelStream()
+                .map(this::processSingleSim)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (!batchResults.isEmpty()) {
+            try {
+                simRepository.saveAll(batchResults);
+                successCount += batchResults.size();
+                log.info("Batch {}/{} completed successfully. Processed: {}/{}",
+                        i + 1, totalBatches, batchResults.size(), batch.size());
+            } catch (Exception e) {
+                log.error("Error saving batch {}/{}: {}", i + 1, totalBatches, e.getMessage());
+                failureCount += batch.size();
+            }
         }
-
+        failureCount += (batch.size() - batchResults.size());
+        if (i < totalBatches - 1) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Embedding process interrupted");
+                break;
+            }
+        }
+    }
+    log.info("Embedding process completed. Success: {}, Failed: {}, Total: {}", successCount, failureCount, simsToEmbed.size());
+}
+    private Sim processSingleSim(Sim sim) {
         try {
+            // 1️⃣ Build content
             String contentFull = buildContentEmbedSim(sim)
                     .replaceAll("(?m)(\\r?\\n){2,}", "\n")
                     .trim();
 
             if (contentFull.isBlank()) {
-                log.error("SIM contentFull blank, skip. phone={}", sim.getPhoneNumber());
-                continue;
+                log.warn("SIM content blank, skip. phone={}", sim.getPhoneNumber());
+                return null;
             }
 
+            // 2️⃣ Embedding
             float[] embedding = aiService.embeddingVectorV2(contentFull);
-
-            // ✅ delay nhẹ để tránh quota (bạn có thể chỉnh 400-900)
-//            sleepRandom(400, 900);
-
             if (embedding == null || embedding.length == 0) {
-                log.error("Failed to get embedding for SIM phone={}", sim.getPhoneNumber());
-                continue;
+                log.error("Embedding failed for SIM phone={}", sim.getPhoneNumber());
+                return null;
             }
 
-            Map<String, Object> content = buildContentBodySim(sim);
-            LocalDateTime now = LocalDateTime.now();
+            // 3️⃣ VectorStore (pgvector)
+            String prodType = environment.getProperty("scheduled.embedding.sim.index");
 
-            // ✅ 2.1 Upsert vào vector_store (pgvector)
-            vectorStoreRepository.deleteByProdIdAndProdType(sim.getId(), index);
+            // xoá vector cũ để tránh trùng
+            vectorStoreRepository.deleteByProdIdAndProdType(sim.getId(), prodType);
 
             VectorStore vs = new VectorStore();
-            vs.setProdId(sim.getId());         // ✅ UUID
-            vs.setProdType(index);             // ✅ type = index
-            vs.setContent(contentFull);
-            vs.setMetadata(content);
-            vs.setEmbVector(embedding);
+            vs.setProdId(sim.getId());                 // UUID
+            vs.setProdType(prodType);                  // SIM
+            vs.setContent(contentFull);                // text
+            vs.setMetadata(buildContentBodySim(sim));  // jsonb
+            vs.setEmbVector(embedding);                // vector(768)
 
-            vs.setCreatedAt(now);
-            vs.setUpdatedAt(now);
-            vs.setCreatedBy("PROCESS");
-            vs.setUpdatedBy("PROCESS");
+            vs.setCreatedAt(LocalDateTime.now());
+            vs.setUpdatedAt(LocalDateTime.now());
+            vs.setCreatedBy("EMBED_JOB");
+            vs.setUpdatedBy("EMBED_JOB");
 
             vectorStoreRepository.save(vs);
 
-            // ✅ 2.2 Lưu lên Elasticsearch
-            // ES _id dùng phoneNumber như code cũ của bạn
+            // 4️⃣ Elasticsearch
+            String index = environment.getProperty("scheduled.embedding.sim.index");
             String esId = sim.getPhoneNumber();
-            if (esId == null || esId.isBlank()) {
-                log.error("SIM phoneNumber null/blank, skip ES. simId={}", sim.getId());
-                continue;
-            }
 
             Map<String, Object> documentBody = Map.of(
                     "id", esId,
-                    "content", content,
+                    "content", buildContentBodySim(sim),
                     "contentFull", contentFull,
                     "contentVector", embedding
             );
 
-            // Khuyến nghị: dùng upsert (_doc) để chạy lại không lỗi 409
             elasticsearchService.createDocument(index, esId, documentBody);
 
-            // ✅ 2.3 Update trạng thái embed
+            // 5️⃣ Update trạng thái
             sim.setIsEmbed(Constants.Status.ACTIVE);
-            simRepository.save(sim);
+            return sim;
 
         } catch (Exception e) {
             log.error("Error embedding SIM phone={} - {}", sim.getPhoneNumber(), e.getMessage(), e);
+            return null;
+        }
+    }
 
-            // ✅ quota -> nghỉ lâu
-//            if (isQuotaExceeded(e)) {
-//                sleepRandom(5000, 20000);
+    private List<List<Sim>> partitionSimList(List<Sim> list, int batchSize) {
+        List<List<Sim>> partitions = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += batchSize) {
+            int end = Math.min(list.size(), i + batchSize);
+            partitions.add(new ArrayList<>(list.subList(i, end)));
+        }
+        return partitions;
+    }
+
+
+
+//        private String buildContentEmbedMobilePackage (MobilePackage mobilePackage) {
+//        String code = DataUtils.parseString(mobilePackage.getCode(), "").trim();
+//        long moneyFee = Long.parseLong(mobilePackage.getMoneyFee());
+//        long dataMb = Long.parseLong(mobilePackage.getDataFree());
+//        long dataGb = dataMb > 0 ? (dataMb / 1024) : 0;
+//
+//        String expireType = DataUtils.parseString(mobilePackage.getExpireType(), "").trim();
+//        String expireValue = DataUtils.parseString(mobilePackage.getExpireValue(), "").trim();
+//
+//        String shortVi = DataUtils.parseString(mobilePackage.getShortDesVi(), "");
+//
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("MOBILE PACKAGE\n");
+//        sb.append("Code: ").append(code).append("\n");
+//
+//        sb.append("Type: mobile data package; prepaid; internet data\n"); // keyword ngữ nghĩa
+//        sb.append("Price: ").append(moneyFee).append(" (currency)\n");
+//        sb.append("Data allowance: ").append(dataMb).append(" MB");
+//        if (dataGb > 0) sb.append(" (").append(dataGb).append(" GB)");
+//        sb.append("\n");
+//
+//        sb.append("Validity: ").append(expireValue);
+//        if (!expireType.isBlank()) sb.append(" ").append(expireType);
+//        sb.append("\n");
+//
+//        sb.append("Short description (VI): ").append(shortVi).append("\n");
+//
+//        // Thêm vài câu “định dạng hỏi” để tăng recall khi search
+//        sb.append("User queries: ");
+//        sb.append("\"gói ").append(code).append("\", ");
+//        if (moneyFee > 0) sb.append("\"gói ").append(moneyFee).append("\", ");
+//        if (dataGb > 0) sb.append("\"gói ").append(dataGb).append("GB\", ");
+//        sb.append("\"gói data\", \"gói internet\", \"gói ").append(expireValue).append(" ").append(expireType).append("\"");
+//        sb.append("\n");
+//
+//        // giảm nhiễu xuống dòng
+//        return sb.toString().replaceAll("(?m)(\\r?\\n){2,}", "\n").trim();
+//    }
+private String buildContentEmbedMobilePackage(MobilePackage mobilePackage) {
+    long dataInMB = Long.parseLong(mobilePackage.getDataFree());
+    long dataInGB = dataInMB / 1024;
+    return "Mobile package code: " + mobilePackage.getCode() + "\n" +
+            DataUtils.parseString(mobilePackage.getShortDesVi(), "") + "\n" +
+            DataUtils.cleanHtml(mobilePackage.getFullDesVi()) + "\n" +
+            "Price: " + mobilePackage.getMoneyFee() + " VND" + "\n" +
+            "Data: " + dataInGB + " GB" + "\n" +
+            "Duration: " + mobilePackage.getExpireValue() + " " + mobilePackage.getExpireType() + "\n";
+}
+
+//private String buildContentEmbedFtthPackage(FtthPackage ftth) {
+//    String code = DataUtils.parseString(ftth.getCode(), "").trim();
+//
+//    String groupName = DataUtils.parseString(ftth.getGroupName(), "").trim();
+//
+//    long price = DataUtils.parseLong(ftth.getPrice());
+//    long promoPrice = DataUtils.parseLong(ftth.getPromotionPrice());
+//
+//    String shortVi = DataUtils.parseString(ftth.getShortDesVi(), "");
+//
+//    String promoVi = DataUtils.parseString(ftth.getPromotionVi(), "");
+//
+//    StringBuilder sb = new StringBuilder();
+//    sb.append("FTTH PACKAGE\n");
+//    sb.append("Code: ").append(code).append("\n");
+//
+//    sb.append("Type: fiber internet package; FTTH; home internet\n"); // keyword ngữ nghĩa
+//    if (!groupName.isBlank()) sb.append("Group name: ").append(groupName).append("\n");
+//
+//
+//    sb.append("Price: ").append(price).append(" (currency)\n");
+//    if (promoPrice > 0) sb.append("Promotion price: ").append(promoPrice).append(" (currency)\n");
+//
+//    sb.append("Description (VI): ").append(shortVi).append("\n");
+//
+//    if (!promoVi.isBlank()) sb.append("Promotion (VI): ").append(promoVi).append("\n");
+//
+//    // cycle info (JSON -> text)
+//    String cycleRaw = DataUtils.parseString(ftth.getCycle(), "").trim();
+//    if (!cycleRaw.isBlank()) {
+//        sb.append("Cycle options:\n");
+//        try {
+//            ObjectMapper mapper = new ObjectMapper();
+//            List<Map<String, Object>> cycles = mapper.readValue(cycleRaw, new TypeReference<>() {});
+//            for (Map<String, Object> c : cycles) {
+//                String months = DataUtils.parseString(c.get("cycle"), "");
+//                String cPrice = DataUtils.parseString(c.get("price"), "");
+//                String discount = DataUtils.parseString(c.get("percent_discount"), "");
+//                String bonus = DataUtils.parseString(c.get("bonus"), "");
+//
+//                sb.append("- ").append(months).append(" month(s)");
+//                if (!cPrice.isBlank()) sb.append(", price ").append(cPrice).append("VNĐ");
+//                if (!discount.isBlank()) sb.append(", discount ").append(discount).append("%");
+//                if (!bonus.isBlank()) sb.append(", bonus ").append(bonus).append(" month(s)");
+//                sb.append("\n");
 //            }
+//        } catch (Exception e) {
+//            log.warn("FTTH cycle JSON parse failed for code {}: {}", code, e.getMessage());
+//            sb.append("- cycle_raw: ").append(cycleRaw).append("\n");
+//        }
+//    }
+//
+//    // thêm câu “định dạng hỏi” để tăng recall
+//    sb.append("User queries: ");
+//    sb.append("\"gói ").append(code).append("\", ");
+//    if (price > 0) sb.append("\"gói ").append(price).append("\", ");
+//    sb.append("\"gói FTTH\", \"internet gia đình\"");
+//    sb.append("\n");
+//
+//    return sb.toString().replaceAll("(?m)(\\r?\\n){2,}", "\n").trim();
+//}
+private String buildContentEmbedFtthPackage(FtthPackage ftthPackage) {
+    String content = "FTTH package code: " + ftthPackage.getCode() + "\n" +
+            DataUtils.parseString(ftthPackage.getShortDesVi(), "") + "\n" +
+            DataUtils.parseString(ftthPackage.getPromotionVi(), "") + "\n" +
+            "Group name: " + ftthPackage.getGroupName() + "\n" +
+            "Speed network: " + ftthPackage.getSpeedInText() + "\n" +
+            "Price: " + ftthPackage.getPrice() + " VNĐ" + "\n" +
+            "Promotion price: " + ftthPackage.getPromotionPrice() + " VNĐ" + "\n";
+    String cycle = ftthPackage.getCycle();
+    StringBuilder cycleInfo = new StringBuilder("Cycle info:\n");
+    try {
+        ObjectMapper mapper = new ObjectMapper();
+        List<Map<String, Object>> cycles =
+                mapper.readValue(cycle, new TypeReference<>() {
+                });
+        for (Map<String, Object> c : cycles) {
+            String cycleMonths = DataUtils.parseString(c.get("cycle"), "");
+            String price = DataUtils.parseString(c.get("price"), "");
+            String percentDiscount = DataUtils.parseString(c.get("percent_discount"), "");
+            String bonus = DataUtils.parseString(c.get("bonus"), "");
+            cycleInfo.append("- ")
+                    .append(cycleMonths)
+                    .append(" month(s), ")
+                    .append("price ")
+                    .append(price)
+                    .append(" VND, ")
+                    .append("discount ")
+                    .append(percentDiscount).append("%")
+                    .append(" bonus ")
+                    .append(bonus).append(" month(s)");
+            cycleInfo.append("\n");
         }
+    } catch (Exception e) {
+        log.error("Error parsing cycle info for FTTH with ID: {} - {}", ftthPackage.getCode(), e.getMessage());
+        cycleInfo.append("[]");
     }
+    return content + cycleInfo;
 }
-
-
-
-    private String buildContentEmbedMobilePackage (MobilePackage mobilePackage) {
-        String code = DataUtils.parseString(mobilePackage.getCode(), "").trim();
-        long moneyFee = Long.parseLong(mobilePackage.getMoneyFee());            // LAK hoặc VND tuỳ hệ của bạn
-        long dataMb = Long.parseLong(mobilePackage.getDataFree());              // DB đang lưu MB (theo code cũ bạn)
-        long dataGb = dataMb > 0 ? (dataMb / 1024) : 0;
-
-        String expireType = DataUtils.parseString(mobilePackage.getExpireType(), "").trim();
-        String expireValue = DataUtils.parseString(mobilePackage.getExpireValue(), "").trim();
-
-        String shortEn = DataUtils.parseString(mobilePackage.getShortDesEn(), "");
-        String shortVi = DataUtils.parseString(mobilePackage.getShortDesVi(), "");
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("=== MOBILE PACKAGE ===\n");
-        sb.append("Code: ").append(code).append("\n");
-
-        sb.append("Type: mobile data package; prepaid; internet data\n"); // keyword ngữ nghĩa
-        sb.append("Price: ").append(moneyFee).append(" (currency)\n");
-        sb.append("Data allowance: ").append(dataMb).append(" MB");
-        if (dataGb > 0) sb.append(" (").append(dataGb).append(" GB)");
-        sb.append("\n");
-
-        sb.append("Validity: ").append(expireValue);
-        if (!expireType.isBlank()) sb.append(" ").append(expireType);
-        sb.append("\n");
-
-        sb.append("Short description (EN): ").append(shortEn).append("\n");
-        sb.append("Short description (VI): ").append(shortVi).append("\n");
-
-        // Thêm vài câu “định dạng hỏi” để tăng recall khi search
-        sb.append("User queries: ");
-        sb.append("\"gói ").append(code).append("\", ");
-        if (moneyFee > 0) sb.append("\"gói ").append(moneyFee).append("\", ");
-        if (dataGb > 0) sb.append("\"gói ").append(dataGb).append("GB\", ");
-        sb.append("\"gói data\", \"gói internet\", \"gói ").append(expireValue).append(" ").append(expireType).append("\"");
-        sb.append("\n");
-
-        // giảm nhiễu xuống dòng
-        return sb.toString().replaceAll("(?m)(\\r?\\n){2,}", "\n").trim();
-    }
-
-
-private String buildContentEmbedFtthPackage(FtthPackage ftth) {
-    String code = DataUtils.parseString(ftth.getCode(), "").trim();
-
-    String groupName = DataUtils.parseString(ftth.getGroupName(), "").trim();
-    String speedNetwork = DataUtils.parseString(ftth.getSpeedNetwork(), "").trim();
-
-    long price = DataUtils.parseLong(ftth.getPrice());
-    long promoPrice = DataUtils.parseLong(ftth.getPromotionPrice());
-
-    String shortEn = DataUtils.parseString(ftth.getShortDesEn(), "");
-    String shortVi = DataUtils.parseString(ftth.getShortDesVi(), "");
-
-    String promoEn = DataUtils.parseString(ftth.getPromotionEn(), "");
-    String promoVi = DataUtils.parseString(ftth.getPromotionVi(), "");
-
-    StringBuilder sb = new StringBuilder();
-    sb.append("=== FTTH PACKAGE ===\n");
-    sb.append("Code: ").append(code).append("\n");
-
-    sb.append("Type: fiber internet package; FTTH; home internet\n"); // keyword ngữ nghĩa
-    if (!groupName.isBlank()) sb.append("Group name: ").append(groupName).append("\n");
-
-    if (!speedNetwork.isBlank()) sb.append("Speed: ").append(speedNetwork).append("\n");
-
-    sb.append("Price: ").append(price).append(" (currency)\n");
-    if (promoPrice > 0) sb.append("Promotion price: ").append(promoPrice).append(" (currency)\n");
-
-    sb.append("Description (EN): ").append(shortEn).append("\n");
-    sb.append("Description (VI): ").append(shortVi).append("\n");
-
-    if (!promoEn.isBlank()) sb.append("Promotion (EN): ").append(promoEn).append("\n");
-    if (!promoVi.isBlank()) sb.append("Promotion (VI): ").append(promoVi).append("\n");
-
-    // cycle info (JSON -> text)
-    String cycleRaw = DataUtils.parseString(ftth.getCycle(), "").trim();
-    if (!cycleRaw.isBlank()) {
-        sb.append("Cycle options:\n");
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            List<Map<String, Object>> cycles = mapper.readValue(cycleRaw, new TypeReference<>() {});
-            for (Map<String, Object> c : cycles) {
-                String months = DataUtils.parseString(c.get("cycle"), "");
-                String cPrice = DataUtils.parseString(c.get("price"), "");
-                String discount = DataUtils.parseString(c.get("percent_discount"), "");
-                String bonus = DataUtils.parseString(c.get("bonus"), "");
-
-                sb.append("- ").append(months).append(" month(s)");
-                if (!cPrice.isBlank()) sb.append(", price ").append(cPrice).append("VNĐ");
-                if (!discount.isBlank()) sb.append(", discount ").append(discount).append("%");
-                if (!bonus.isBlank()) sb.append(", bonus ").append(bonus).append(" month(s)");
-                sb.append("\n");
-            }
-        } catch (Exception e) {
-            log.warn("FTTH cycle JSON parse failed for code {}: {}", code, e.getMessage());
-            sb.append("- cycle_raw: ").append(cycleRaw).append("\n");
-        }
-    }
-
-    // thêm câu “định dạng hỏi” để tăng recall
-    sb.append("User queries: ");
-    sb.append("\"internet ").append(speedNetwork).append("\", ");
-    sb.append("\"cáp quang ").append(speedNetwork).append("\", ");
-    sb.append("\"gói ").append(code).append("\", ");
-    if (price > 0) sb.append("\"gói ").append(price).append("\", ");
-    sb.append("\"gói FTTH\", \"internet gia đình\"");
-    sb.append("\n");
-
-    return sb.toString().replaceAll("(?m)(\\r?\\n){2,}", "\n").trim();
-}
-
 
     private String buildContentEmbedSim(Sim sim) {
-        return "Phone number: " + DataUtils.parseString(sim.getPhoneNumber(), "") + "\n" +
-                "Sim type: " + DataUtils.parseString(sim.getSimType(), "") + "\n" +
-                "Number type: " + DataUtils.parseString(sim.getNumberType(), "") + "\n" +
-                "Price: " + DataUtils.parseString(sim.getPrice(), "") + "\n" +
-                "Promotion price: " + DataUtils.parseString(sim.getPromotionPrice(), "") + "\n" +
-                "Description (EN): " + DataUtils.parseString(sim.getDesEn(), "") + "\n" +
-                "Description (VI): " + DataUtils.parseString(sim.getDesVi(), "");
+        return "Phone number: " + sim.getPhoneNumber() + "\n" +
+                "Sim type: " + sim.getSimType() + "\n" +
+                "Number type: " + sim.getNumberType() + "\n" +
+                "Price: " + sim.getPrice() + " VNĐ" + "\n" +
+                "Promotion price: " + sim.getPromotionPrice() + " VNĐ" + "\n" +
+                DataUtils.parseString(sim.getDesVi(), "");
     }
+
 
 
     private void deleteDocuments(String index, List<String> productIds) {
@@ -749,7 +692,7 @@ private String buildContentEmbedFtthPackage(FtthPackage ftth) {
                 try {
                     Map<String, Object> query = Map.of(
                             "query", Map.of(
-                                    "terms", Map.of("content.id", batch)
+                                    "ids", Map.of("values", batch)
                             )
                     );
                     String result = elasticsearchService.deleteDocuments(index, query);
@@ -779,13 +722,6 @@ private String buildContentEmbedFtthPackage(FtthPackage ftth) {
         return partitions;
     }
 
-//    private void deleteVectorStoreByProductId(String index, List<Long> productIds) {
-//        try {
-//            vectorStoreRepository.deleteByProdIdAndProdType(productIds, index);
-//        } catch (Exception e) {
-//            log.error("Error deleting vector store: {}", e.getMessage());
-//        }
-//    }
 private void deleteVectorStoreByProductId(String index, List<UUID> productIds) {
     if (productIds == null || productIds.isEmpty()) {
         log.info("No vector_store records to delete for index {}", index);

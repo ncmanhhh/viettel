@@ -1,9 +1,15 @@
 package com.datn.viettel.controllers;
 
+import com.datn.viettel.common.Constants;
+import com.datn.viettel.common.ResponseMessage;
+import com.datn.viettel.configs.ResourceMessageConfig;
+import com.datn.viettel.dto.common.ExecutionResult;
+import com.datn.viettel.dto.common.ExecutionResultFactory;
 import com.datn.viettel.dto.request.EmbedRequest;
 import com.datn.viettel.services.iservice.AIService;
 import com.datn.viettel.services.iservice.ElasticsearchService;
 import com.datn.viettel.services.iservice.EmbedService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +24,18 @@ import java.util.Map;
 @Slf4j
 @RestController
 //@RequiredArgsConstructor
-@RequestMapping("/admin/embeddings")
-public class AdminEmbedController {
+@RequestMapping("/admin")
+public class AdminController {
 
     private final EmbedService embedService;
     private final AIService aiService;
     private final ElasticsearchService elasticsearchService;
     private final Environment environment;
 
-    public AdminEmbedController(EmbedService embedService,
-                                AIService aiService,
-                                ElasticsearchService elasticsearchService,
-                                Environment environment) {
+    public AdminController(EmbedService embedService,
+                           AIService aiService,
+                           ElasticsearchService elasticsearchService,
+                           Environment environment) {
         this.embedService = embedService;
         this.aiService = aiService;
         this.elasticsearchService = elasticsearchService;
@@ -40,60 +46,67 @@ public class AdminEmbedController {
      * Trigger embed bằng cách gọi API (manual).
      * POST /admin/embeddings/run
      */
-    @PostMapping("/run")
-    public ResponseEntity<?> runEmbed(@RequestBody EmbedRequest req) {
-        String type = req != null && req.getType() != null ? req.getType().trim().toUpperCase(Locale.ROOT) : "ALL";
-        long start = System.currentTimeMillis();
+    @PostMapping("/embeddings")
+    public ResponseEntity<ExecutionResult<String>> runEmbed(
+            @RequestBody EmbedRequest req,
+            HttpServletRequest request
+    ) {
 
-        log.info("Manual embed start - type={}, at={}", type, LocalDateTime.now());
+        if (req == null || req.getType() == null || req.getType().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    ExecutionResultFactory.error(
+                            "INVALID_REQUEST",
+                            "EMBED.MISSING_TYPE",
+                            "type là bắt buộc (MOBILE | FTTH | SIM)",
+                            request.getRequestURI()
+                    )
+            );
+        }
+
+        String type = req.getType().trim().toUpperCase();
 
         try {
             switch (type) {
                 case "MOBILE" -> embedService.embedMobilePackagesV2();
-                case "FTTH" -> embedService.embedFtthPackages();
-                case "SIM" -> embedService.embedSims();
-                case "ALL" -> {
-                    embedService.embedMobilePackages();
-                    embedService.embedFtthPackages();
-                    // embedService.embedSims();
-                }
+                case "FTTH"   -> embedService.embedFtthPackages();
+                case "SIM"    -> embedService.embedSims();
                 default -> {
-                    return ResponseEntity.badRequest().body(Map.of(
-                            "success", false,
-                            "message", "type không hợp lệ. Chỉ hỗ trợ: MOBILE | FTTH | SIM | ALL"
-                    ));
+                    return ResponseEntity.badRequest().body(
+                            ExecutionResultFactory.error(
+                                    "INVALID_REQUEST",
+                                    "EMBED.INVALID_TYPE",
+                                    "type chỉ hỗ trợ: MOBILE | FTTH | SIM",
+                                    request.getRequestURI()
+                            )
+                    );
                 }
             }
 
-            long took = System.currentTimeMillis() - start;
-            log.info("Manual embed done - type={}, tookMs={}", type, took);
+            return ResponseEntity.ok(
+                    ExecutionResultFactory.success(
+                            "Embed " + type + " thành công",
+                            Constants.ExecutionCode.SUCCESS,
+                            ResponseMessage.Common.SUCCESS,
+                            ResourceMessageConfig.getResourceMessage(ResponseMessage.Common.SUCCESS),
+                            request.getRequestURI()
+                    )
+            );
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "type", type,
-                    "tookMs", took
-            ));
         } catch (Exception e) {
-            long took = System.currentTimeMillis() - start;
-            log.error("Manual embed error - type={}, tookMs={}, err={}", type, took, e.getMessage(), e);
-
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "type", type,
-                    "tookMs", took,
-                    "error", e.getMessage()
-            ));
+            log.error("Embed error - type={}", type, e);
+            return ResponseEntity.internalServerError().body(
+                    ExecutionResultFactory.error(
+                            "SYSTEM_ERROR",
+                            "EMBED.ERROR",
+                            e.getMessage(),
+                            request.getRequestURI()
+                    )
+            );
         }
     }
 
-    /**
-     * Cho tiện test nhanh:
-     * POST /admin/embeddings/run?type=FTTH
-     */
-    @PostMapping("/run-by-param")
-    public ResponseEntity<?> runEmbedByParam(@RequestParam(defaultValue = "ALL") String type) {
-        return runEmbed(new EmbedRequest(type));
-    }
+
+
 
 
     /**

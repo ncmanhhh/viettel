@@ -21,16 +21,6 @@ public class Constants {
         private Common() {
         }
     }
-
-    public static class SystemConfig {
-        private SystemConfig() {
-        }
-
-        public static final String SYSTEM_PROMPT_MOBILE_PACKAGE = "SYSTEM_PROMPT_MOBILE_PACKAGE";
-        public static final String SYSTEM_PROMPT_FTTH_PACKAGE = "SYSTEM_PROMPT_FTTH_PACKAGE";
-        public static final String SYSTEM_PROMPT_SIM = "SYSTEM_PROMPT_SIM";
-    }
-
     public static final class Database {
         private Database() {}
 
@@ -60,6 +50,13 @@ public class Constants {
             private Role() {
             }
         }
+    }
+
+    public class VectorType {
+        private VectorType() {}
+        public static final String MOBILE_PACKAGE = "MOBILE_PACKAGE";
+        public static final String FTTH_PACKAGE = "FTTH_PACKAGE";
+        public static final String SIM = "SIM";
     }
 
     public static final class ModelAI {
@@ -133,6 +130,15 @@ public class Constants {
         public static final String VECTOR_TOP_DEFAULT = "5";
         public static final String VECTOR_SCORE_DEFAULT = "1.7";
         public static final String LAST_MESSAGE_KNOWLEDGE_DEFAULT = "7";
+    }
+
+    public static class SystemConfig {
+        private SystemConfig() {
+        }
+
+        public static final String SYSTEM_PROMPT_MOBILE_PACKAGE = "SYSTEM_PROMPT_MOBILE_PACKAGE";
+        public static final String SYSTEM_PROMPT_FTTH_PACKAGE = "SYSTEM_PROMPT_FTTH_PACKAGE";
+        public static final String SYSTEM_PROMPT_SIM = "SYSTEM_PROMPT_SIM";
     }
 
     public static class SystemPromptQuery {
@@ -391,7 +397,7 @@ public class Constants {
             DO NOT INCLUDE ANY TEXT, COMMENTS, MARKDOWN, OR EXPLANATIONS OUTSIDE THE JSON.
             IF THE JSON IS INVALID (wrong syntax, missing commas/quotes/braces, or wrong formatting), THE RESULT IS CONSIDERED COMPLETELY WRONG.
             Field Definitions:
-                content.money_fee = Package price in LAK (numeric field)
+                content.money_fee = Package price in VNĐ (numeric field)
                 content.expire_type = Package duration type (keyword field: ONLY "day" or "month" or "weekly)
                 content.expire_value = Package validity period in the corresponding unit (numeric field)
             Time Conversion Rules: The expire_type field may only have the values "day" or "month". However, all time values must be capable of being expressed in three forms — days, weeks, and months — for reference and conversion purposes. Conversions work as follows:
@@ -408,7 +414,7 @@ public class Constants {
                 "100k" = 100000
                 "1.5k" = 1500
                 etc...
-                Always convert to full LAK amount
+                Always convert to full VNĐ amount
             Query Operators:
                 gte = greater than or equal (for numeric fields)
                 lte = less than or equal (for numeric fields)
@@ -567,7 +573,7 @@ public class Constants {
                 "100k" = 100000
                 "1.5k" = 1500
                 etc...
-                Always convert to full LAK amount
+                Always convert to full VNĐ amount
             Speed Parsing Rules: If the user asks for the package name, do not infer the speed to create JSON. "mbps" or "Mbps" means keeping the numeric value as is. "100mbps" = 100, "1.5mbps" = 1.5, etc. Always convert to a pure numeric value (number only, without the unit).
             IMPORTANT:Common Query Patterns:
                 "under 200k" → {"range":{"content.promotion_price":{"lt":200000}}}
@@ -690,7 +696,7 @@ public class Constants {
                 "100k" = 100000
                 "1.5k" = 1500
                 etc...
-                Always convert to full LAK amount
+                Always convert to full VNĐ amount
             IMPORTANT:Common Query Patterns:
                 "under 200k" → {"bool":{"should":[{"range":{"content.promotion_price":{"lt":200000}}},{"range":{"content.price":{"lt":200000}}}],"minimum_should_match":1}}
                 "over 100k" → {"bool":{"should":[{"range":{"content.promotion_price":{"gt":100000}}},{"range":{"content.price":{"gt":100000}}}],"minimum_should_match":1}}

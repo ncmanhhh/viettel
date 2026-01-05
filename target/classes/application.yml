@@ -8,6 +8,14 @@ spring:
     jdbcUrl: jdbc:postgresql://103.149.28.134:3637/viettel
     username: manhdb9999
     password: manhdb9999
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    username:
+    password:
+
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,3 +23,85 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+  ai:
+    embedding:
+      provider: gemini
+      chunk-size: 700
+      overlap-size: 150
+    vectorstore:
+      pgvector:
+        schema: public
+        table_name: vector_store
+        dimensions: 768
+        max-document-batch-size: 10000
+    chat:
+      last-message-knowledge: 7
+      last-message-prompt: 5
+      provider: gemini
+      vector-top:
+        mobile-package: 5
+        ftth-package: 5
+        sim: 50
+      vector-score: 1.7
+      vector-index:
+        mobile-package: "mobile_packages"
+        ftth-package: "ftth_packages"
+        sim: "sims"
+
+    vertex:
+      ai:
+        credentials-uri: classpath:/secret/black-seer-479409-m2-419e0fdfd72f.json
+
+        gemini:
+          chat:
+            options:
+              model: gemini-2.5-flash
+              max-tokens: 4096
+              temperature: 0.7
+              tool-names:
+                - getMobilePackageAccordingPrice
+
+        embedding:
+          project-id: black-seer-479409-m2
+          location: asia-southeast1
+          text:
+            options:
+              model: gemini-embedding-001
+              dimensions: 768
+
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioTranscriptionAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiModerationAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiTextCompletionAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiTextEditAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiVectorStoreAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiImageAutoConfiguration
+#
+scheduled:
+  embedding:
+    mobile-package:
+      active: 1
+      time-delay: 10000
+      cron: 0 0/1 * * * ?
+      index: "mobile_packages"
+    ftth-package:
+      active: 1
+      time-delay: 10000
+      cron: 0 0/1 * * * ?
+      index: "ftth_packages"
+    sim:
+      active: 0
+      time-delay: 6000000
+      cron: 0 0/1 * * * ?
+      index: "sims"
+
+#server:
+#  port: 8201

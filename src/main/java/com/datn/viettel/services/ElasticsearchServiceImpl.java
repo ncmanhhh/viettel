@@ -1,8 +1,10 @@
 package com.datn.viettel.services;
 
+import com.datn.viettel.dto.elasticsearch.ElasticsearchResultMapper;
 import com.datn.viettel.dto.elasticsearch.MultiSearchQuery;
 import com.datn.viettel.services.iservice.ElasticsearchService;
 import com.datn.viettel.utils.DataUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +35,16 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
     private final RestClient restClient;
     private final ObjectMapper mapper = new ObjectMapper();
 
+    private final ElasticsearchResultMapper resultMapper;
+
+
+
     @Autowired
-    public ElasticsearchServiceImpl(@Qualifier("restClientElasticsearch") RestClient restClient) {
+    public ElasticsearchServiceImpl(
+            @Qualifier("restClientElasticsearch") RestClient restClient,
+            ElasticsearchResultMapper resultMapper) {
         this.restClient = restClient;
+        this.resultMapper = resultMapper;
     }
 
     @NotNull
@@ -103,12 +112,17 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
     }
 
     @Override
-    public String getDocument(String indexName, String id) {
+    public Map<String, Object> getDocument(String indexName, String id) {
         String path = "/" + indexName + "/_doc/" + id;
         try {
             Response resp = call("GET", path, null, JSON);
             if (!is2xx(resp)) throw new IllegalStateException("Failed to get document: " + body(resp));
-            return body(resp);
+            // 1️⃣ Parse raw JSON
+            Map<String, Object> rawResponse =
+                    mapper.readValue(body(resp), new TypeReference<>() {});
+
+            // 2️⃣ Map đúng loại response (GET DOCUMENT)
+            return resultMapper.mapGetDocumentResult(rawResponse);
         } catch (IOException e) {
             log.error("Error getting document {}/{}: {}", indexName, id, e.getMessage());
             throw new IllegalStateException("Failed to get document", e);
@@ -145,7 +159,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
     }
 
     @Override
-    public String deleteDocument(String indexName, String id) {
+    public String deleteDocumentById(String indexName, String id) {
         String path = "/" + indexName + "/_doc/" + id;
         try {
             Response resp = call("DELETE", path, null, JSON);
@@ -157,15 +171,84 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
         }
     }
 
+    @Override
+    public Map<String, Object> deleteDocumentByIds(String index, List<String> ids) {
+
+        if (ids == null || ids.isEmpty()) {
+            return Map.of(
+                    "deleted", 0,
+                    "message", "ID list is empty"
+            );
+        }
+
+        String path = "/_bulk";
+
+        try {
+            // 1️⃣ Build NDJSON body
+            StringBuilder bulkBody = new StringBuilder();
+            for (String id : ids) {
+                bulkBody.append("""
+                { "delete": { "_index": "%s", "_id": "%s" } }
+                """.formatted(index, id));
+            }
+
+            // 2️⃣ Gọi Elasticsearch
+            Response resp = call("POST", path, bulkBody.toString(), NDJSON);
+
+            if (!is2xx(resp)) {
+                throw new IllegalStateException(
+                        "Bulk delete failed: " + body(resp)
+                );
+            }
+
+            // 3️⃣ Parse response
+            Map<String, Object> rawResponse =
+                    mapper.readValue(body(resp), new TypeReference<>() {});
+
+            // 4️⃣ Đếm số document xóa thành công
+            List<Map<String, Object>> items =
+                    (List<Map<String, Object>>) rawResponse.get("items");
+
+            long deletedCount = items.stream()
+                    .filter(item -> {
+                        Map<String, Object> delete =
+                                (Map<String, Object>) item.get("delete");
+                        return delete != null
+                                && ((Number) delete.get("status")).intValue() == 200;
+                    })
+                    .count();
+
+            return Map.of(
+                    "deleted", deletedCount,
+                    "requested", ids.size()
+            );
+
+        } catch (Exception e) {
+            log.error("Bulk delete error", e);
+            throw new IllegalStateException("Failed to bulk delete documents", e);
+        }
+    }
+
+
     // Tìm kiếm tài liệu với truy vấn tùy chỉnh
     @Override
-    public String searchDocuments(String indexName, Map<String, Object> query) {
+    public Map<String, Object> searchDocuments(String indexName, Map<String, Object> query) {
         String path = "/" + indexName + "/_search";
         String payload = json(query);
+
         try {
             Response resp = call("POST", path, payload, JSON);
-            if (!is2xx(resp)) throw new IllegalStateException("Failed to search: " + body(resp));
-            return body(resp);
+            if (!is2xx(resp)) {
+                throw new IllegalStateException("Failed to search: " + body(resp));
+            }
+
+            // 1️⃣ Parse raw JSON
+            Map<String, Object> rawResponse =
+                    mapper.readValue(body(resp), new TypeReference<>() {});
+
+            // 2️⃣ Map sang response sạch
+            return resultMapper.mapSearchResult(rawResponse);
+
         } catch (IOException e) {
             log.error("Error searching documents in {}: {}", indexName, e.getMessage());
             throw new IllegalStateException("Failed to search documents", e);

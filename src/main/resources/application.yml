@@ -30,8 +30,8 @@ spring:
   ai:
     embedding:
       provider: gemini
-      chunk-size: 1000
-      overlap-size: 200
+      chunk-size: 700
+      overlap-size: 150
     vectorstore:
       pgvector:
         schema: public
