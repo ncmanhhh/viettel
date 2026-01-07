@@ -103,5 +103,7 @@ scheduled:
       cron: 0 0/1 * * * ?
       index: "sims"
 
+integration:
+  mock: true
 #server:
 #  port: 8201

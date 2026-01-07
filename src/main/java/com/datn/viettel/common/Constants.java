@@ -10,7 +10,7 @@ public class Constants {
 
 
     public static class Common {
-//        public static final String APPLICATION_CODE = "CHATBOT_AI";
+        public static final String APPLICATION_CODE = "CHATBOT_AI";
         public static final String SYSTEM_PROMPT = """
                 Your task is to answer customer questions strictly based on the provided product, service, and policy information.
                 Do not speculate, infer, or introduce information that is not explicitly included.
@@ -72,6 +72,29 @@ public class Constants {
         public static final short INACTIVE = 0;
         public static final String ACTIVE_STR = "1";
         public static final String INACTIVE_STR = "0";
+        public static final class Register {
+            private Register() {}
+
+            public static final Short PROCESSING = 1;
+            public static final Short COMPLETED = 2;
+            public static final Short FAILED = 3;
+        }
+    }
+
+    public static class RegisterType {
+        private RegisterType() {
+        }
+
+        public static final Short REGISTER = 1;
+        public static final Short GIFT = 2;
+    }
+    public static class PaymentType {
+        private PaymentType() {
+        }
+
+        public static final short CASH = 0;
+        public static final Short QR = 1;
+        public static final Short ACCOUNT = 2;
     }
 
     public static class Language {
@@ -140,6 +163,25 @@ public class Constants {
         public static final String SYSTEM_PROMPT_FTTH_PACKAGE = "SYSTEM_PROMPT_FTTH_PACKAGE";
         public static final String SYSTEM_PROMPT_SIM = "SYSTEM_PROMPT_SIM";
     }
+
+    public static class OrderStatus {
+        private OrderStatus() {
+        }
+
+        public static final short PENDING = 0;
+        public static final short SUCCESS = 1;
+        public static final short FAILED = 2;
+        public static final short CANCELLED = 3;
+    }
+
+    public static class ProductType {
+        private ProductType() {}
+
+        public static final Short HANDSET = 0;
+        public static final Short SERVICE = 1;
+        public static final Short SIM = 2;
+    }
+
 
     public static class SystemPromptQuery {
         private SystemPromptQuery() {

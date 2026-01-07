@@ -24,6 +24,7 @@ public class ResponseMessage {
     public static final class Common {
         public static final String SUCCESS = "success";
         public static final String INTERGRATION_SYSTEM_ERROR = "intergration.system.error";
+        public static final String INVALID_REQUEST = "invalid.request";
 
         private Common() {
         }
@@ -42,5 +43,49 @@ public class ResponseMessage {
         private SystemConfig() {
         }
     }
+
+    public static final class Integration {
+        public static final String REQUEST_OTP_UNSUPPORTED_TYPE = "integration.request.otp.unsupported.type";
+        public static final String MISSING_PHONE_NUMBER = "integration.missing.phone-number";
+        public static final String MISSING_OTP_TYPE = "integration.missing.otp-type";
+        public static final String MISSING_SERVICE_CODE = "integration.missing.service-code";
+        public static final String INVALID_LENGTH_PHONE_NUMBER = "integration.invalid.length.phone-number";
+        public static final String INVALID_SERVICE_CODE = "integration.invalid.service-code";
+        public static final String INVALID_OTP_TYPE = "integration.invalid.otp-type";
+        public static final String MISSING_OTP = "integration.missing.otp";
+        public static final String INVALID_OTP = "integration.invalid.otp";
+        public static final String MISSING_PAYMENT_TYPE = "integration.missing.payment-type";
+        public static final String INVALID_PAYMENT_TYPE = "integration.invalid.payment-type";
+        public static final String INVALID_PHONE_NUMBER_FORMAT = "integration.invalid.format.phone-number";
+        public static final String MISSING_SERVICE_TYPE = "integration.missing.service-type";
+        public static final String INVALID_SERVICE_TYPE = "integration.invalid.service-type";
+        public static final String OTP_NOT_MATCHED = "integration.otp.not.matched";
+        public static final String PRODUCT_NOT_FOUND = "integration.product.not.found";
+        public static final String PRODUCT_UNSUPPORTED_TYPE = "integration.product.unsupported.type";
+        public static final String SYSTEM_ERROR = "integration.system.error";
+        public static final String MISSING_DELIVERY_METHOD = "integration.missing.delivery-method";
+        public static final String INVALID_DELIVERY_METHOD = "integration.invalid.delivery-method";
+        public static final String MISSING_CUSTOMER_NAME = "integration.missing.customer-name";
+        public static final String INVALID_LENGTH_CUSTOMER_NAME = "integration.invalid.length.customer-name";
+        public static final String MISSING_PROVINCE = "integration.missing.province";
+        public static final String INVALID_PROVINCE = "integration.invalid.province";
+        public static final String MISSING_DISTRICT = "integration.missing.district";
+        public static final String INVALID_DISTRICT = "integration.invalid.district";
+        public static final String MISSING_WARD = "integration.missing.ward";
+        public static final String INVALID_WARD = "integration.invalid.ward";
+        public static final String MISSING_DETAIL_ADDRESS = "integration.missing.detail-address";
+        public static final String INVALID_LENGTH_DETAIL_ADDRESS = "integration.invalid.length.detail-address";
+        public static final String MISSING_PRODUCT_ID = "integration.missing.product-id";
+        public static final String INVALID_PRODUCT_ID = "integration.invalid.product-id";
+        public static final String MISSING_PRODUCT_CODE = "integration.missing.product-code";
+        public static final String INVALID_PRODUCT_CODE = "integration.invalid.product-code";
+        public static final String MISSING_QUANTITY = "integration.missing.quantity";
+        public static final String INVALID_QUANTITY = "integration.invalid.quantity";
+        public static final String INVALID_LENGTH_NOTE = "integration.invalid.length.note";
+
+        private Integration() {
+        }
+    }
+
 
 }

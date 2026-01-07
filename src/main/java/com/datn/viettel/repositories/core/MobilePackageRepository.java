@@ -15,6 +15,8 @@ public interface MobilePackageRepository extends JpaRepository<MobilePackage, UU
     List<MobilePackage> findByStatusAndIsEmbed(Short status, Short isEmbed, Pageable pageable);
     List<MobilePackage> findByStatus(Short status);
 
+    MobilePackage findByCode(@Param("serviceCode") String serviceCode);
+
     @Query(
             value = """
         SELECT *
