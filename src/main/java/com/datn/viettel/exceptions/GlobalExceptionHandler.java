@@ -27,7 +27,7 @@ public class GlobalExceptionHandler extends RuntimeException {
                 .timestamp(new Timestamp(System.currentTimeMillis()))
                 .path(http.getRequestURI())
                 .build();
-        return ResponseEntity.ok(res); // hoặc status theo responseCode nếu bạn muốn
+        return ResponseEntity.ok(res); // hoặc status theo responseCode
     }
 
     @ExceptionHandler(Exception.class)

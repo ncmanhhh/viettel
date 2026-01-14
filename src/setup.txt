@@ -1,0 +1,3 @@
+
+// ===== Kiểm tra các key trong redis =====
+docker exec -it redis redis-cli keys *

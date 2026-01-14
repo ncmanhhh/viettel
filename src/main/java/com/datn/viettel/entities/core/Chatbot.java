@@ -27,7 +27,7 @@ public class Chatbot extends BaseEntity {
 
     @NotNull
     @Column(name = "knowledge_id", nullable = false)
-    private UUID knowledgeId; //Mỗi chatbot liên kết với một kho tri thức
+    private UUID knowledgeId;
 
     @NotNull
     @Size(max = 150)

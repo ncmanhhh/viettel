@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 public class RedisChatMemory implements ChatMemory {
 
     private static final String CHAT_MEMORY_PREFIX = "chat:memory:"; // Prefix key lưu chat memory trong Redis
-    private static final long TTL_MINUTES = 60;     // TTL (time-to-live – thời gian sống)
-    private static final int MAX_MESSAGES = 30;     // Giữ N message gần nhất (context window – cửa sổ ngữ cảnh)
+    private static final long TTL_MINUTES = 10;     // TTL (time-to-live – thời gian sống)
+    private static final int MAX_MESSAGES = 5;     // Giữ N message gần nhất (context window – cửa sổ ngữ cảnh)
 
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
@@ -32,10 +32,17 @@ public class RedisChatMemory implements ChatMemory {
     @Override
     public List<Message> get(@NotNull String conversationId) {
         String key = buildKey(conversationId);
+        log.info(">>> DEBUG REDIS GET - ID: {}, Key: {}", conversationId, key);
         try {
             List<String> jsonList = stringRedisTemplate.opsForList().range(key, 0, -1);
             if (jsonList == null || jsonList.isEmpty()) {
+                log.info(">>> DEBUG REDIS GET - Result: EMPTY or NULL");
                 return new ArrayList<>();
+            }
+
+            log.info(">>> DEBUG REDIS GET - Found {} messages", jsonList.size());
+            if (!jsonList.isEmpty()) {
+                log.info(">>> DEBUG REDIS GET - First Raw JSON: {}", jsonList.get(0));
             }
 
             List<Message> result = new ArrayList<>(jsonList.size());
@@ -73,6 +80,8 @@ public class RedisChatMemory implements ChatMemory {
 
             // Set TTL cho cả list (mỗi lần add sẽ refresh TTL)
             stringRedisTemplate.expire(key, TTL_MINUTES, TimeUnit.MINUTES);
+
+            log.info(">>> DEBUG REDIS ADD - Added {} messages to Key: {}", messages.size(), key);
 
         } catch (Exception e) {
             log.error("Error saving chat memory for conversation: {}", conversationId, e);

@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatRequest {
     String conversationId;
+    String customerPhone;
     @NotBlank(message = ResponseMessage.Conversation.MISSING_CONTENT)
     @Length(max = 500, message = ResponseMessage.Conversation.INVALID_CONTENT_LENGTH)
     String prompt;
@@ -25,4 +26,5 @@ public class ChatRequest {
     LocalDateTime requestTime = LocalDateTime.now();
     @JsonIgnore
     String createBy;
+
 }

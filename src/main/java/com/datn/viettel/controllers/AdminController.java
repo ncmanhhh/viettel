@@ -23,7 +23,6 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-//@RequiredArgsConstructor
 @RequestMapping("/admin")
 public class AdminController {
 
@@ -44,7 +43,7 @@ public class AdminController {
 
     /**
      * Trigger embed bằng cách gọi API (manual).
-     * POST /admin/embeddings/run
+     * POST /admin/embeddings
      */
     @PostMapping("/embeddings")
     public ResponseEntity<ExecutionResult<String>> runEmbed(

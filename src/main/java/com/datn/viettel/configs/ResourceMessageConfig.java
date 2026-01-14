@@ -24,7 +24,7 @@ public class ResourceMessageConfig {
 
     private static MessageSource createMessageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("static/lang");
+        messageSource.setBasename("i18n/lang");
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setCacheSeconds(10);
         messageSource.setUseCodeAsDefaultMessage(true);

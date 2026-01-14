@@ -25,7 +25,11 @@ public class RegisterDataRequest {
     @NotBlank(message = ResponseMessage.Integration.MISSING_SERVICE_CODE)
     @Length(max = 20, message = ResponseMessage.Integration.INVALID_SERVICE_CODE)
     String serviceCode;
+    @InList(
+            values = {"0", "1"},
+            targetType = Short.class,
+            message = ResponseMessage.Integration.INVALID_PAYMENT_TYPE
+    )
     @NotNull(message = ResponseMessage.Integration.MISSING_PAYMENT_TYPE)
-    @InList(values = {"1", "2"}, targetType = Short.class, message = ResponseMessage.Integration.INVALID_PAYMENT_TYPE)
-    Short paymentType; // 1: u-money, 2: tai-khoan-goc
+    Short paymentType;
 }

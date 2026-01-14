@@ -92,9 +92,8 @@ public class Constants {
         private PaymentType() {
         }
 
-        public static final short CASH = 0;
+        public static final short DIRECT = 0;
         public static final Short QR = 1;
-        public static final Short ACCOUNT = 2;
     }
 
     public static class Language {
@@ -141,6 +140,7 @@ public class Constants {
         public static final String SUCCESS = "0";
         public static final String ERROR = "1";
         public static final String INTEGRATION_ERROR = "2";
+        public static final String BUSINESS_ERROR = "3";
 
         private ExecutionCode() {
         }

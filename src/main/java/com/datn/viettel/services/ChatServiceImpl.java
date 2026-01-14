@@ -5,6 +5,7 @@ import com.datn.viettel.common.ResponseMessage;
 import com.datn.viettel.dto.pojo.ChatSavedEvent;
 import com.datn.viettel.dto.MessageChatDTO;
 import com.datn.viettel.dto.request.ChatRequest;
+import com.datn.viettel.dto.request.ConversationCreateRequest;
 import com.datn.viettel.exceptions.LogicException;
 import com.datn.viettel.repositories.core.ChatbotRepository;
 import com.datn.viettel.services.iservice.*;
@@ -38,10 +39,9 @@ import java.util.stream.Collectors;
 @Service
 public class ChatServiceImpl implements ChatService {
     private final Environment env;
-    private final Executor chatExecutor;
+    private final Executor chatExecutor; // Executor để chạy các tác vụ bất đồng bộ
     private final AIService aiService;
     private final ElasticsearchService elasticsearchService;
-    private final ChatbotRepository chatbotRepository;
     private final ChatMemory chatMemory;
     private final ConversationService conversationService;
     private final CacheService cacheService;
@@ -68,7 +68,6 @@ public class ChatServiceImpl implements ChatService {
         this.chatExecutor = chatExecutor;
         this.aiService = aiService;
         this.elasticsearchService = elasticsearchService;
-        this.chatbotRepository = chatbotRepository;
         this.chatMemory = chatMemory;
         this.conversationService = conversationService;
         this.cacheService = cacheService;
@@ -82,7 +81,20 @@ public class ChatServiceImpl implements ChatService {
         String originalPrompt = request.getPrompt().trim(); // Lấy đoạn prompt gốc và loại bỏ khoảng trắng thừa
         String language = LanguageUtils.detectLanguage(originalPrompt); // Phát hiện ngôn ngữ của đoạn prompt
         String vectorIndex = getVectorIndexByType(chatType); // Lấy tên vector index dựa trên loại chat
-        String conversationId = conversationService.prepareConversationId(request.getConversationId(), chatType, vectorIndex); // Chuẩn bị conversationId
+//        String conversationId = conversationService.prepareConversationId(request.getConversationId(), chatType, vectorIndex); // Chuẩn bị conversationId
+
+        ConversationCreateRequest convReq = ConversationCreateRequest.builder()
+                .conversationId(request.getConversationId())
+                .customerPhone(request.getCustomerPhone())
+                .prompt(request.getPrompt())
+                .build();
+
+        String conversationId = conversationService.createConversation(
+                convReq,
+                chatType,
+                vectorIndex
+        );
+
         request.setConversationId(conversationId); // Thiết lập conversationId vào request
         List<Message> existingMessages = prepareExistingMessages(request, originalPrompt, conversationId); // Chuẩn bị các tin nhắn đã tồn tại trong cuộc trò chuyện
         CompletableFuture<String> systemPromptFuture = CompletableFuture
@@ -140,6 +152,7 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
+    // Hàm chuẩn bị các tin nhắn đã tồn tại trong cuộc trò chuyện
     private List<Message> prepareExistingMessages(ChatRequest request, String originalPrompt, String conversationId) {
         List<Message> existingMessages = new ArrayList<>();
         if (!DataUtils.isNullOrBlank(conversationId)) {
@@ -251,6 +264,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
 
+    // Hàm xây dựng ngữ cảnh công cụ dựa trên tìm kiếm vector trong Elasticsearch
     private Map<String, Object> buildToolContext(String index, float[] promptInVector, Map<String, Object> query, Short chatType) {
         String cacheKey = index + "_" + Arrays.hashCode(promptInVector) + "_" + // Tạo khóa cache dựa trên index, vector nhúng và truy vấn
                 (query != null ? query.hashCode() : 0);
@@ -347,6 +361,7 @@ public class ChatServiceImpl implements ChatService {
         return new MessageChatDTO();
     }
 
+    // Hàm phát sự kiện lưu chat một cách bất đồng bộ
     //    @Async("chat-async-executor")
     protected void publishEventAsync(String conversationId, String userPrompt, String aiResponse, LocalDateTime requestTime) {
         try {

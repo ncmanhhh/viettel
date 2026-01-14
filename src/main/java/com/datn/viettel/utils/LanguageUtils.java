@@ -18,7 +18,7 @@ public class LanguageUtils {
         if (VI_PATTERN.matcher(text.toLowerCase()).find()) {
             return Constants.Language.VI;
         }
-        return Constants.Language.EN;
+        return Constants.Language.VI;
     }
 
 }

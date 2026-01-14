@@ -1,18 +1,26 @@
 package com.datn.viettel.controllers;
 
+import com.datn.viettel.common.Constants;
 import com.datn.viettel.common.ResponseMessage;
+import com.datn.viettel.configs.ResourceMessageConfig;
 import com.datn.viettel.dto.ConversationDTO;
+import com.datn.viettel.dto.MessageDTO;
 import com.datn.viettel.dto.common.ExecutionResult;
+import com.datn.viettel.dto.common.ExecutionResultFactory;
+import com.datn.viettel.dto.request.ConversationEndRequest;
+import com.datn.viettel.dto.request.search.CommonSearch;
 import com.datn.viettel.exceptions.LogicException;
 import com.datn.viettel.repositories.core.MessageRepository;
 import com.datn.viettel.services.iservice.ConversationService;
 import com.datn.viettel.utils.DataUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,71 +31,78 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConversationController {
 
-//    private final ConversationService conversationService;
-//    private final MessageRepository messageRepository; // để lấy message detail từ DB (conversation_messages)
-//
-//    @GetMapping("/wv/v1/history")
-//    public ResponseEntity<ExecutionResult<Map<String, Object>>> getConversationHistory(
-//            @RequestParam(name = "botId", defaultValue = "") String botId,
-//            @RequestParam(name = "page", defaultValue = "0") Integer page,
-//            @RequestParam(name = "size", defaultValue = "20") Integer size,
-//            HttpServletRequest http
-//    ) {
-//        if (DataUtils.isNullOrBlank(botId)) {
-//            throw new LogicException(ResponseMessage.Chatbot.MISSING_ID);
-//        }
-//
-//        Map<String, Object> data = conversationService.getConversations(botId.trim(), page, size);
-//        return ResponseEntity.ok(success(data, http));
-//    }
-//
-//    @GetMapping("/wv/v1/history/{conversationId}")
-//    public ResponseEntity<ExecutionResult<List<ConversationDTO>>> getConversationHistoryDetail(
-//            @PathVariable String conversationId,
-//            HttpServletRequest http
-//    ) {
-//        if (DataUtils.isNullOrBlank(conversationId) || !DataUtils.isValidUUID(conversationId)) {
-//            throw new LogicException(ResponseMessage.Conversation.MISSING_ID);
-//        }
-//
-//        UUID convId = UUID.fromString(conversationId.trim());
-//        List<ConversationDTO> data = messageRepository.findByConversationIdOrderBySentAtAsc(convId)
-//                .stream()
-//                .map(m -> ConversationDTO.builder()
-//                        .id(m.getId())
-//                        .conversationId(m.getConversationId())
-//                        .question(m.getQuestion())
-//                        .answer(m.getAnswer())
-//                        .sentAt(m.getSentAt())
-//                        .token(m.getToken())
-//                        .build())
-//                .toList();
-//
-//        return ResponseEntity.ok(success(data, http));
-//    }
-//
-//    @PostMapping("/wv/v1/rating")
-//    public ResponseEntity<ExecutionResult<Boolean>> createRating(
-//            @Valid @RequestBody ConversationEndRequest req,
-//            HttpServletRequest http
-//    ) {
-//        // Validate UUID
-//        if (!DataUtils.isValidUUID(req.getConversationId())) {
-//            throw new LogicException(ResponseMessage.Conversation.MISSING_ID);
-//        }
-//        conversationService.createRating(req); // set endedAt + rating + status
-//        return ResponseEntity.ok(success(true, http));
-//    }
-//
-//    private <T> ExecutionResult<T> success(T data, HttpServletRequest http) {
-//        String key = ResponseMessage.Common.SUCCESS;
-//        return ExecutionResult.<T>builder()
-//                .data(data)
-//                .responseCode(Constants.ExecutionCode.SUCCESS)
-//                .keyMessage(key)
-//                .description(ResourceMessageConfig.getResourceMessage(key))
-//                .timestamp(new Timestamp(System.currentTimeMillis()))
-//                .path(http.getRequestURI())
-//                .build();
-//    }
+    private final ConversationService conversationService;
+
+    @GetMapping("/history")
+    public ResponseEntity<ExecutionResult<Map<String, Object>>> getConversationHistory(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            HttpServletRequest http
+    ) {
+        if (page < 0 || size <= 0) {
+            throw new LogicException(ResponseMessage.Common.INVALID_REQUEST);
+        }
+
+        CommonSearch search = CommonSearch.builder()
+                .page(page)
+                .size(size)
+                .fullData(false)
+                .build();
+
+        Map<String, Object> data = conversationService.getConversations(search);
+
+        return ResponseEntity.ok(
+                ExecutionResultFactory.success(
+                        data,
+                        Constants.ExecutionCode.SUCCESS,
+                        ResponseMessage.Common.SUCCESS,
+                        ResourceMessageConfig.getResourceMessage(ResponseMessage.Common.SUCCESS),
+                        http.getRequestURI()
+                )
+        );
+    }
+
+    @GetMapping("/history/{conversationId}")
+    public ResponseEntity<ExecutionResult<List<MessageDTO>>> getConversationHistoryDetail(
+            @PathVariable String conversationId,
+            HttpServletRequest http
+    ) {
+        if (!DataUtils.isValidUUID(conversationId)) {
+            throw new LogicException(ResponseMessage.Conversation.MISSING_ID);
+        }
+
+        List<MessageDTO> data = conversationService.getConversationDetail(conversationId);
+
+        return ResponseEntity.ok(
+                ExecutionResultFactory.success(
+                        data,
+                        Constants.ExecutionCode.SUCCESS,
+                        ResponseMessage.Common.SUCCESS,
+                        ResourceMessageConfig.getResourceMessage(ResponseMessage.Common.SUCCESS),
+                        http.getRequestURI()
+                )
+        );
+    }
+
+    @PostMapping("/rating")
+    public ResponseEntity<ExecutionResult<Boolean>> createRating(
+            @Valid @RequestBody ConversationEndRequest request,
+            HttpServletRequest http
+    ) {
+        if (!DataUtils.isValidUUID(request.getConversationId())) {
+            throw new LogicException(ResponseMessage.Conversation.MISSING_ID);
+        }
+
+        conversationService.createRating(request);
+
+        return ResponseEntity.ok(
+                ExecutionResultFactory.success(
+                        true,
+                        Constants.ExecutionCode.SUCCESS,
+                        ResponseMessage.Common.SUCCESS,
+                        ResourceMessageConfig.getResourceMessage(ResponseMessage.Common.SUCCESS),
+                        http.getRequestURI()
+                )
+        );
+    }
 }

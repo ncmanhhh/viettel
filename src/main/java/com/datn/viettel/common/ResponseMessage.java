@@ -3,6 +3,16 @@ package com.datn.viettel.common;
 public class ResponseMessage {
     private ResponseMessage(){}
 
+    public static final class Common {
+        public static final String SUCCESS = "success";
+        public static final String INTERGRATION_SYSTEM_ERROR = "intergration.system.error";
+        public static final String INVALID_REQUEST = "invalid.request";
+        public static final String PACKAGE_NOT_FOUND = "package.not.found";
+
+        private Common() {
+        }
+    }
+
     public static final class Conversation {
         public static final String NOT_FOUND = "conversation.not.found";
         public static final String MISSING_CONTENT = "conversation.missing.prompt";
@@ -21,14 +31,6 @@ public class ResponseMessage {
         public static final String UNSUPPORTED_CHAT_TYPE = "chat.unsupported.chat.type";
     }
 
-    public static final class Common {
-        public static final String SUCCESS = "success";
-        public static final String INTERGRATION_SYSTEM_ERROR = "intergration.system.error";
-        public static final String INVALID_REQUEST = "invalid.request";
-
-        private Common() {
-        }
-    }
 
     public static final class Chatbot {
         public static final String MISSING_ID = "chatbot.missing.id";
@@ -82,6 +84,7 @@ public class ResponseMessage {
         public static final String MISSING_QUANTITY = "integration.missing.quantity";
         public static final String INVALID_QUANTITY = "integration.invalid.quantity";
         public static final String INVALID_LENGTH_NOTE = "integration.invalid.length.note";
+        public static final String CUSTOMER_NOT_FOUND = "integration.customer.not.found";
 
         private Integration() {
         }

@@ -20,9 +20,6 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class SimServiceImpl implements SimService {
 
-    private static final Short STATUS_ACTIVE = 1;
-    private static final Short NOT_EMBED = 0;
-
     private final SimRepository simRepository;
 
     @Override

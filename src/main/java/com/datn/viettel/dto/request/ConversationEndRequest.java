@@ -14,8 +14,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConversationEndRequest {
-    @NotBlank(message = ResponseMessage.Chatbot.MISSING_ID)
-    String botId;
     @NotBlank(message = ResponseMessage.Conversation.MISSING_ID)
     String conversationId;
     @NotNull(message = ResponseMessage.Conversation.MISSING_RATING)

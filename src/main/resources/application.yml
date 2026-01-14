@@ -54,7 +54,7 @@ spring:
 
     vertex:
       ai:
-        credentials-uri: classpath:/secret/black-seer-479409-m2-419e0fdfd72f.json
+        credentials-uri: classpath:/secret/black-seer-479409-m2-ea6a56a9dd3a.json
 
         gemini:
           chat:
@@ -90,18 +90,27 @@ scheduled:
     mobile-package:
       active: 1
       time-delay: 10000
-      cron: 0 0/1 * * * ?
+#      cron: 0 0/1 * * * ?
+      cron: 0 0 2 * * ?
       index: "mobile_packages"
     ftth-package:
       active: 1
       time-delay: 10000
-      cron: 0 0/1 * * * ?
+#      cron: 0 0/1 * * * ?
+      cron: 0 0 2 * * ?
       index: "ftth_packages"
     sim:
-      active: 0
-      time-delay: 6000000
-      cron: 0 0/1 * * * ?
+      active: 1
+      time-delay: 10000
+#      cron: 0 0/1 * * * ?
+      cron: 0 0 2 * * ?
       index: "sims"
+
+  sync-data:
+    config-to-redis:
+      active: 1
+      time-delay: 600000
+      cron: 0 0/10 * * * ?
 
 integration:
   mock: true

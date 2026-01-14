@@ -19,7 +19,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
 @Slf4j
 @Service
 public class IntegrationServiceImpl implements IntegrationService {
@@ -40,109 +39,161 @@ public class IntegrationServiceImpl implements IntegrationService {
         this.aiService = aiService;
     }
 
-    // ================= CHECK CUSTOMER =================
+    /* =======================================================
+     * CHECK CUSTOMER
+     * ======================================================= */
     @Override
     public boolean checkCustomerInfo(String phoneNumber) {
+
         if (mockMode) {
-            log.info("[MOCK] checkCustomerInfo phone={}", phoneNumber);
-            return phoneNumber.matches("^0(3|5|7|8|9)\\d{8}$");
+            log.info("[MOCK][CHECK_CUSTOMER] phone={}", phoneNumber);
+
+            // Giả lập logic nhà mạng
+            if (!phoneNumber.matches("^0(3|5|7|8|9)\\d{8}$")) {
+                return false;
+            }
+
+            // Ví dụ: blacklist số test
+            if ("0999999999".equals(phoneNumber)) {
+                return false;
+            }
+
+            return true;
         }
 
         throw new IllegalStateException("Integration not enabled");
     }
 
-    // ================= REQUEST OTP =================
+    /* =======================================================
+     * REQUEST OTP
+     * ======================================================= */
     @Override
     public void requestOtp(RequestOtpRequest request) {
+
         if (mockMode) {
-            log.info("[MOCK] requestOtp phone={}, otpType={}, serviceCode={}, serviceType={}",
+            log.info(
+                    "[MOCK][REQUEST_OTP] phone={}, otpType={}, serviceCode={}, serviceType={}",
                     request.getPhoneNumber(),
                     request.getOtpType(),
                     request.getServiceCode(),
-                    request.getServiceType());
+                    request.getServiceType()
+            );
+
+            // Validate giả lập
+            if (!checkCustomerInfo(request.getPhoneNumber())) {
+                throw new LogicException(
+                        ResponseMessage.Integration.CUSTOMER_NOT_FOUND,
+                        Constants.ExecutionCode.BUSINESS_ERROR
+                );
+            }
+
+            // OTP luôn gửi thành công
+            log.info("[MOCK][REQUEST_OTP] OTP sent successfully (123456)");
             return;
         }
 
         throw new IllegalStateException("Integration not enabled");
     }
 
-    // ================= VERIFY OTP =================
+    /* =======================================================
+     * VERIFY OTP
+     * ======================================================= */
     @Override
     public void verifyOtp(VerifyOtpRequest request) {
+
         if (mockMode) {
-            log.info("[MOCK] verifyOtp phone={}, otp={}",
+            log.info("[MOCK][VERIFY_OTP] phone={}, otp={}",
                     request.getPhoneNumber(),
                     request.getOtp());
 
-            // OTP demo cố định
+            // OTP hợp lệ duy nhất
             if (!"123456".equals(request.getOtp())) {
                 throw new LogicException(
                         ResponseMessage.Integration.OTP_NOT_MATCHED,
                         Constants.ExecutionCode.INTEGRATION_ERROR
                 );
             }
+
+            log.info("[MOCK][VERIFY_OTP] OTP verified successfully");
             return;
         }
 
         throw new IllegalStateException("Integration not enabled");
     }
 
-    // ================= EMBEDDING =================
+    /* =======================================================
+     * EMBEDDING (AI)
+     * ======================================================= */
     @Override
     public float[] embedding(String prompt) {
-        if (mockMode) {
-            log.info("[MOCK] embedding prompt={}", prompt);
 
+        if (mockMode) {
+            log.info("[MOCK][EMBEDDING] prompt={}", prompt);
+
+            // Vector 1536 chiều giống OpenAI
             float[] vector = new float[1536];
-            Arrays.fill(vector, 0.01f);
+            for (int i = 0; i < vector.length; i++) {
+                vector[i] = (prompt.hashCode() % 100) * 0.0001f;
+            }
             return vector;
         }
 
         return aiService.embeddingVectorV2(prompt);
     }
 
-    // ================= PROVINCES =================
+    /* =======================================================
+     * PROVINCES
+     * ======================================================= */
     @Override
     public List<Object> getProvinces() {
+
         if (mockMode) {
             return List.of(
-                    Map.of("id", "01", "name", "Hà Nội"),
-                    Map.of("id", "79", "name", "TP Hồ Chí Minh")
+                    Map.of("id", "01", "code", "HN", "name", "Hà Nội"),
+                    Map.of("id", "79", "code", "HCM", "name", "TP Hồ Chí Minh"),
+                    Map.of("id", "48", "code", "DN", "name", "Đà Nẵng")
             );
         }
 
         throw new IllegalStateException("Integration not enabled");
     }
 
-    // ================= DISTRICTS =================
+    /* =======================================================
+     * DISTRICTS
+     * ======================================================= */
     @Override
     public List<Object> getDistricts(String provinceId) {
+
         if (mockMode) {
-            if ("01".equals(provinceId)) {
-                return List.of(
+            return switch (provinceId) {
+                case "01" -> List.of(
                         Map.of("id", "001", "name", "Ba Đình"),
-                        Map.of("id", "002", "name", "Hoàn Kiếm")
+                        Map.of("id", "002", "name", "Hoàn Kiếm"),
+                        Map.of("id", "003", "name", "Đống Đa")
                 );
-            }
-            if ("79".equals(provinceId)) {
-                return List.of(
+                case "79" -> List.of(
                         Map.of("id", "760", "name", "Quận 1"),
-                        Map.of("id", "761", "name", "Quận 3")
+                        Map.of("id", "761", "name", "Quận 3"),
+                        Map.of("id", "762", "name", "Quận 5")
                 );
-            }
-            return Collections.emptyList();
+                default -> Collections.emptyList();
+            };
         }
 
         throw new IllegalStateException("Integration not enabled");
     }
 
-    // ================= WARDS =================
+    /* =======================================================
+     * WARDS
+     * ======================================================= */
     @Override
     public List<Object> getWards(String provinceId, String districtId) {
+
         if (mockMode) {
             return List.of(
                     Map.of("id", "00001", "name", "Phường 1"),
-                    Map.of("id", "00002", "name", "Phường 2")
+                    Map.of("id", "00002", "name", "Phường 2"),
+                    Map.of("id", "00003", "name", "Phường 3")
             );
         }
 

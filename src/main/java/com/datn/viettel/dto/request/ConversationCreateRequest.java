@@ -17,9 +17,8 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConversationCreateRequest {
-    @NotBlank(message = ResponseMessage.Chatbot.MISSING_ID)
-    String botId;
     String conversationId;
+    String customerPhone;
     @NotBlank(message = ResponseMessage.Conversation.MISSING_CONTENT)
     @Length(max = 500, message = ResponseMessage.Conversation.INVALID_CONTENT_LENGTH)
     String prompt;

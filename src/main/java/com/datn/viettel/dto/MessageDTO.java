@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ConversationDTO {
+public class MessageDTO {
     String id;
-    String user;
-    LocalDateTime startedAt;
-    LocalDateTime endedAt;
-    Short rating;
+    String senderType;
+    LocalDateTime sentAt;
+    String content;
+    Integer token;
 }

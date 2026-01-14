@@ -24,12 +24,12 @@ public class RegMobilePackageLog {
     @NotNull
     @Size(max = 13)
     @Column(name = "phone_number_source", nullable = false, length = 13)
-    private String phoneNumberSource;
+    private String phoneNumberSource; // Số điện thoại đăng ký gói cước
 
     @NotNull
     @Size(max = 13)
     @Column(name = "phone_number_destination", nullable = false, length = 13)
-    private String phoneNumberDestination;
+    private String phoneNumberDestination; // Số điện thoại nhận gói cước
 
     @NotNull
     @Column(name = "request_at", nullable = false)
