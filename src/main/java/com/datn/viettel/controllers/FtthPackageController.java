@@ -49,13 +49,13 @@ public class FtthPackageController {
         );
     }
 
-    @PatchMapping("/{id}/toggle-status")
+    @PatchMapping("/toggle-status")
     public ResponseEntity<ExecutionResult<Void>> toggleStatus(
-            @PathVariable UUID id,
+            @RequestBody java.util.List<UUID> ids,
             HttpServletRequest request
     ) {
 
-        ftthPackageService.toggleStatus(id);
+        ftthPackageService.toggleStatus(ids);
 
         return ResponseEntity.ok(
                 ExecutionResultFactory.success(

@@ -3,8 +3,10 @@ package com.datn.viettel.services;
 import com.datn.viettel.dto.FtthPackageDTO;
 import com.datn.viettel.entities.core.FtthPackage;
 import com.datn.viettel.repositories.core.FtthPackageRepository;
+import com.datn.viettel.services.iservice.ElasticsearchService;
 import com.datn.viettel.services.iservice.FtthPackageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,8 @@ public class FtthPackageServiceImpl implements FtthPackageService {
     private static final Short NOT_EMBED = 0;
 
     private final FtthPackageRepository ftthPackageRepository;
+    private final ElasticsearchService elasticsearchService;
+    private final Environment env;
 
     @Override
     public Page<FtthPackage> getFtthPackages(
@@ -56,10 +60,42 @@ public class FtthPackageServiceImpl implements FtthPackageService {
 
     @Override
     @Transactional
-    public void toggleStatus(UUID id) {
-        int updated = ftthPackageRepository.toggleStatus(id);
-        if (updated == 0) {
-            throw new IllegalArgumentException("FTTH package not found: " + id);
+    public void toggleStatus(List<UUID> ids) {
+        if (com.datn.viettel.utils.DataUtils.isNullOrEmpty(ids)) {
+            return;
+        }
+
+        List<FtthPackage> packages = ftthPackageRepository.findAllById(ids);
+        if (packages.isEmpty()) {
+            return;
+        }
+
+        List<String> idsToDeleteFromEs = new java.util.ArrayList<>();
+        String indexName = env.getProperty("spring.ai.chat.vector-index.ftth-package");
+
+        for (FtthPackage p : packages) {
+            // 1. Toggle Status
+            if (STATUS_ACTIVE.equals(p.getStatus())) {
+                p.setStatus(com.datn.viettel.common.Constants.Status.INACTIVE);
+                idsToDeleteFromEs.add(p.getId().toString());
+            } else {
+                p.setStatus(STATUS_ACTIVE);
+            }
+
+            // 2. Reset isEmbed
+            p.setIsEmbed(NOT_EMBED);
+        }
+
+        // 3. Save to DB
+        ftthPackageRepository.saveAll(packages);
+
+        // 4. Delete from ES
+        if (!idsToDeleteFromEs.isEmpty() && indexName != null) {
+            try {
+                elasticsearchService.deleteDocumentByIds(indexName, idsToDeleteFromEs);
+            } catch (Exception e) {
+                // Log error
+            }
         }
     }
 

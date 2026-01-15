@@ -11,11 +11,13 @@ import com.datn.viettel.services.iservice.MobilePackageService;
 import com.datn.viettel.services.iservice.RegisterService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,6 +27,7 @@ public class MobilePackageController {
 
     private final MobilePackageService mobilePackageService;
     private final RegisterService registerService;
+    private final Environment env;
 
     @GetMapping
     public ResponseEntity<ExecutionResult<Page<MobilePackage>>> list(
@@ -72,13 +75,13 @@ public class MobilePackageController {
 
 
 
-    @PatchMapping("/{id}/toggle-status")
+    @PatchMapping("/toggle-status")
     public ResponseEntity<ExecutionResult<Void>> toggleStatus(
-            @PathVariable UUID id,
+            @RequestBody List<UUID> ids,
             HttpServletRequest request
     ) {
 
-        mobilePackageService.toggleStatus(id);
+        mobilePackageService.toggleStatus(ids);
 
         return ResponseEntity.ok(
                 ExecutionResultFactory.success(

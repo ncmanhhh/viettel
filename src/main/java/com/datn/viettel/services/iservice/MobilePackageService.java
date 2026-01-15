@@ -24,9 +24,9 @@ import java.util.UUID;
 
 
         /**
-         * Cập nhật trạng thái gói cước
+         * Cập nhật trạng thái gói cước (Batch)
          */
-        void toggleStatus(UUID id);
+        void toggleStatus(List<UUID> ids);
 
 
     }

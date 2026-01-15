@@ -20,7 +20,7 @@ public interface SimService {
             int size
     );
 
-    void toggleStatus(UUID id);
+    void toggleStatus(List<UUID> ids);
 
     Sim getById(UUID id);
 

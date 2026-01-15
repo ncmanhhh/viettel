@@ -131,8 +131,8 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
 
     @Override
     public boolean createDocument(String indexName, String id, Map<String, Object> document) {
-        String path = "/" + indexName + "/_create/" + id;
-//        String path = "/" + indexName + "/_doc/" + id;
+        String path = "/" + indexName + "/_create/" + id; //Tạo mới
+//        String path = "/" + indexName + "/_doc/" + id; // Ghi đè + Tạo mới
         String payload = json(document);
         try {
             Response resp = call("PUT", path, payload, JSON);

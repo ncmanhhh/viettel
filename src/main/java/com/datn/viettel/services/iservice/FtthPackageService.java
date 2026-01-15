@@ -24,7 +24,7 @@ public interface FtthPackageService {
     );
 
 
-    void toggleStatus(UUID id);
+    void toggleStatus(List<UUID> ids);
 
 
     /**
