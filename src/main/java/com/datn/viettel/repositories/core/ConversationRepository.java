@@ -22,4 +22,15 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
             String type,
             Pageable pageable
     );
+
+    @Query("SELECT c FROM Conversation c WHERE " +
+            "(:status IS NULL OR c.status = :status) AND " +
+            "(:type IS NULL OR c.type LIKE %:type%) AND " +
+            "(:rating IS NULL OR c.rating = :rating)")
+    Page<Conversation> findByFilters(
+            @Param("status") Short status,
+            @Param("type") String type,
+            @Param("rating") Integer rating,
+            Pageable pageable
+    );
 }

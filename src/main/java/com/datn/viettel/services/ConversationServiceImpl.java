@@ -5,7 +5,7 @@ import com.datn.viettel.common.ResponseMessage;
 import com.datn.viettel.dto.MessageDTO;
 import com.datn.viettel.dto.request.ConversationCreateRequest;
 import com.datn.viettel.dto.request.ConversationEndRequest;
-import com.datn.viettel.dto.request.search.CommonSearch;
+import com.datn.viettel.dto.request.search.ConversationSearchRequest;
 import com.datn.viettel.entities.core.Conversation;
 import com.datn.viettel.entities.core.ConversationMessage;
 import com.datn.viettel.exceptions.LogicException;
@@ -105,8 +105,9 @@ public class ConversationServiceImpl implements ConversationService {
         }
     }
 
+
     @Override
-    public Map<String, Object> getConversations(CommonSearch search) {
+    public Map<String, Object> getConversations(ConversationSearchRequest search) {
 
         int page = Optional.ofNullable(search.getPage()).orElse(0);
         int size = Optional.ofNullable(search.getSize()).orElse(20);
@@ -115,18 +116,12 @@ public class ConversationServiceImpl implements ConversationService {
 
         Page<Conversation> pageData;
 
-        if (DataUtils.isNullOrBlank(search.getGroupFilter())) {
-            pageData = conversationRepository.findByStatus(
-                    Constants.Status.ACTIVE,
-                    pageable
-            );
-        } else {
-            pageData = conversationRepository.findByStatusAndType(
-                    Constants.Status.ACTIVE,
-                    search.getGroupFilter(),
-                    pageable
-            );
-        }
+        pageData = conversationRepository.findByFilters(
+                search.getStatus(),
+                search.getType(),
+                search.getRating(),
+                pageable
+        );
 
         Map<String, Object> result = new HashMap<>();
         result.put("data", pageData.getContent());

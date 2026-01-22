@@ -14,6 +14,7 @@ import java.util.UUID;
 public interface SimRepository extends JpaRepository<Sim, UUID> {
     List<Sim> findByStatus(Short status);
     List<Sim> findByStatusAndIsEmbed(Short status, Short isEmbed);
+    Sim findByPhoneNumber(String phoneNumber);
 
     @Query(
             value = """

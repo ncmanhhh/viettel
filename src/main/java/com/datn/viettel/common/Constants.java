@@ -35,7 +35,32 @@ public class Constants {
             public static final String UNIT = "primary_datasource";
             public static final String BEAN_TRANSACTION_MANAGER = "transactionManager";
         }
+
+        public static final class Secondary {
+            private Secondary () {}
+
+            public static final String BEAN_SECONDARY_DATASOURCE = "secondaryDataSource";
+            public static final String PROPERTY_PREFIX = "spring.datasource-secondary";
+            public static final String PACKAGE_REPO = "com.datn.viettel.repositories.secondary";
+            public static final String BEAN_ENTITY_MANAGER_FACTORY = "secondaryEntityManagerFactory";
+            public static final String PACKAGE_ENTITY = "com.datn.viettel.entities.secondary";
+            public static final String UNIT = "secondary_datasource";
+            public static final String BEAN_TRANSACTION_MANAGER = "secondaryTransactionManager";
+        }
     }
+    public static class ExpireType {
+        private ExpireType() {
+        }
+
+        public static final String NONE = "NONE";
+        public static final String MINUTE = "MINUTE";
+        public static final String HOUR = "HOUR";
+        public static final String DAY = "DAY";
+        public static final String WEEK = "WEEK";
+        public static final String MONTH = "MONTH";
+        public static final String YEAR = "YEAR";
+    }
+
 
     public static class Conversation {
         private Conversation() {
@@ -149,10 +174,10 @@ public class Constants {
     public static class AIConfig {
         private AIConfig() {};
 
-        public static final String LAST_MESSAGE_PROMPT_DEFAULT = "5";
-        public static final String VECTOR_TOP_DEFAULT = "5";
-        public static final String VECTOR_SCORE_DEFAULT = "1.7";
-        public static final String LAST_MESSAGE_KNOWLEDGE_DEFAULT = "7";
+        public static final String LAST_MESSAGE_PROMPT_DEFAULT = "5"; // Số câu hỏi gần nhất lấy prompt
+        public static final String VECTOR_TOP_DEFAULT = "3"; // Số kết quả vector trả về
+        public static final String VECTOR_SCORE_DEFAULT = "1.7"; // Mức độ tương đồng
+        public static final String LAST_MESSAGE_KNOWLEDGE_DEFAULT = "7"; // Số câu hỏi gần nhất lấy kiến thức
     }
 
     public static class SystemConfig {
@@ -518,6 +543,7 @@ public class Constants {
                 - No code blocks
                 - Start with { and end with }
                 - Valid JSON syntax with proper commas and quotes""";
+
         public static final String FTTH_PACKAGE = """
             MANDATORY: Create JSON according to the required template, make sure to check the format carefully so that there are no missing brackets that would cause JSON errors.
             CRITICAL CONSTRAINT: You MUST NEVER use any predefined data, sample data, default values, or placeholder information. Only work with data explicitly provided by the user in their current request.
@@ -628,6 +654,7 @@ public class Constants {
                 - No code blocks
                 - Start with { and end with }
                 - Valid JSON syntax with proper commas and quotes""";
+
         public static final String SIM = """ 
             CRITICAL CONSTRAINT: You MUST NEVER use any predefined data, sample data, default values, or placeholder information. Only work with data explicitly provided by the user in their current request.
             STRICTLY FORBIDDEN:

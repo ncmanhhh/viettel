@@ -2,6 +2,7 @@ package com.datn.viettel.services;
 
 import com.datn.viettel.common.Constants;
 import com.datn.viettel.entities.core.MobilePackage;
+import com.datn.viettel.exceptions.LogicException;
 import com.datn.viettel.repositories.core.MobilePackageRepository;
 import com.datn.viettel.services.iservice.ElasticsearchService;
 import com.datn.viettel.services.iservice.MobilePackageService;
@@ -98,4 +99,34 @@ public class MobilePackageServiceImpl implements MobilePackageService {
         }
     }
 
+
+    @Override
+    @Transactional
+    public MobilePackage create(com.datn.viettel.dto.request.MobilePackageCreateRequest request) {
+        MobilePackage existing = mobilePackageRepository.findByCode(request.getCode());
+        if (existing != null) {
+            throw new LogicException(com.datn.viettel.common.ResponseMessage.Common.ALREADY_EXISTS, request.getCode());
+        }
+
+        MobilePackage mobilePackage = MobilePackage.builder()
+                .productId(System.currentTimeMillis())
+                .code(request.getCode())
+                .moneyFee(request.getMoneyFee())
+                .dataFree(request.getDataFree())
+                .expireValue(request.getExpireValue())
+                .expireType(request.getExpireType())
+                .shortDesVi(request.getShortDesVi())
+                .fullDesVi(request.getFullDesVi())
+                .priority(request.getPriority())
+                .status(request.getStatus())
+                .isEmbed(Constants.Status.INACTIVE) // Always set INACTIVE for embed initially
+                .build();
+
+        mobilePackage.setCreatedAt(java.time.LocalDateTime.now());
+        mobilePackage.setUpdatedAt(java.time.LocalDateTime.now());
+        mobilePackage.setCreatedBy("ADMIN");
+        mobilePackage.setUpdatedBy("ADMIN");
+
+        return mobilePackageRepository.save(mobilePackage);
+    }
 }

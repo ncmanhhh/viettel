@@ -99,4 +99,27 @@ public class DataUtils {
         }
         return Jsoup.parse(input).text();
     }
+
+    public static Short parseShort(Object obj) {
+        return Objects.isNull(obj) ? null : Short.parseShort(obj.toString());
+    }
+    public static Short parseShort(Object obj, Short defaultValue) {
+        return Objects.isNull(obj) ? defaultValue : Short.parseShort(obj.toString());
+    }
+
+    public static String parseClobToString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.sql.Clob clob) {
+            try {
+                long length = clob.length();
+                if (length == 0) return "";
+                return clob.getSubString(1, (int) length);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return value.toString();
+    }
 }

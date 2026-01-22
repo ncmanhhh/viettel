@@ -560,7 +560,7 @@ private String buildContentEmbedMobilePackage(MobilePackage mobilePackage) {
     return "Mobile package code: " + mobilePackage.getCode() + "\n" +
             DataUtils.parseString(mobilePackage.getShortDesVi(), "") + "\n" +
             DataUtils.cleanHtml(mobilePackage.getFullDesVi()) + "\n" +
-            "Price: " + mobilePackage.getMoneyFee() + " VND" + "\n" +
+            "Price: " + mobilePackage.getMoneyFee() + " VNĐ" + "\n" +
             "Data: " + dataInGB + " GB" + "\n" +
             "Duration: " + mobilePackage.getExpireValue() + " " + mobilePackage.getExpireType() + "\n";
 }
@@ -651,7 +651,7 @@ private String buildContentEmbedFtthPackage(FtthPackage ftthPackage) {
                     .append(" month(s), ")
                     .append("price ")
                     .append(price)
-                    .append(" VND, ")
+                    .append(" VNĐ, ")
                     .append("discount ")
                     .append(percentDiscount).append("%")
                     .append(" bonus ")

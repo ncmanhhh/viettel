@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,14 +24,23 @@ public interface RegMobilePackageLogRepository extends JpaRepository<RegMobilePa
             "AND (CAST(:registerType AS smallint) IS NULL OR r.register_type = CAST(:registerType AS smallint)) " +
             "AND (CAST(:result AS smallint) IS NULL OR r.result = CAST(:result AS smallint)) " +
             "AND (CAST(:paymentType AS smallint) IS NULL OR r.payment_type = CAST(:paymentType AS smallint))",
+            countQuery = "SELECT count(*) FROM reg_mobile_package_logs r " +
+                    "WHERE (:code = '' OR r.service_code LIKE '%' || :code || '%') " +
+                    "AND (:phoneNumber = '' OR r.phone_number_source LIKE '%' || :phoneNumber || '%' OR r.phone_number_destination LIKE '%' || :phoneNumber || '%') " +
+                    "AND (CAST(:fromDate AS timestamp) IS NULL OR r.request_at >= CAST(:fromDate AS timestamp)) " +
+                    "AND (CAST(:toDate AS timestamp) IS NULL OR r.request_at <= CAST(:toDate AS timestamp)) " +
+                    "AND (CAST(:registerType AS smallint) IS NULL OR r.register_type = CAST(:registerType AS smallint)) " +
+                    "AND (CAST(:result AS smallint) IS NULL OR r.result = CAST(:result AS smallint)) " +
+                    "AND (CAST(:paymentType AS smallint) IS NULL OR r.payment_type = CAST(:paymentType AS smallint))",
             nativeQuery = true)
-    List<RegMobilePackageLog> findAllReport(
+    Page<RegMobilePackageLog> findAllReport(
             @Param("code") String code,
             @Param("result") Short result,
             @Param("registerType") Short registerType,
             @Param("paymentType") Short paymentType,
             @Param("phoneNumber") String phoneNumber,
             @Param("fromDate") LocalDateTime fromDate,
-            @Param("toDate") LocalDateTime toDate);
+            @Param("toDate") LocalDateTime toDate,
+            Pageable pageable);
 
 }

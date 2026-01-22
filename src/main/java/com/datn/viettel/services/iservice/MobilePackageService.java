@@ -29,4 +29,10 @@ import java.util.UUID;
         void toggleStatus(List<UUID> ids);
 
 
-    }
+    
+    /**
+     * Tạo mới gói cước
+     */
+    MobilePackage create(com.datn.viettel.dto.request.MobilePackageCreateRequest request);
+
+}

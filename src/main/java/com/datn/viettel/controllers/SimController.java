@@ -65,4 +65,22 @@ public class SimController {
                 )
         );
     }
+
+    @PostMapping("/create")
+    public ResponseEntity<ExecutionResult<Sim>> create(
+            @RequestBody @jakarta.validation.Valid com.datn.viettel.dto.request.SimCreateRequest body,
+            HttpServletRequest request
+    ) {
+        Sim result = simService.create(body);
+
+        return ResponseEntity.ok(
+                ExecutionResultFactory.success(
+                        result,
+                        "SUCCESS",
+                        "sim.create.success",
+                        "Create SIM successfully",
+                        request.getRequestURI()
+                )
+        );
+    }
 }

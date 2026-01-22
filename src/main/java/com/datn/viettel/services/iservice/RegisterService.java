@@ -6,6 +6,7 @@ import com.datn.viettel.dto.request.search.MobilePackageLogSearch;
 import com.datn.viettel.entities.core.RegMobilePackageLog;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RegisterService {
 
@@ -13,6 +14,6 @@ public interface RegisterService {
 
     void giveMobilePackage(GiveDataRequest request);
 
-    List<RegMobilePackageLog> getMobilePackageReport(MobilePackageLogSearch request);
+    Map<String, Object> getMobilePackageReport(MobilePackageLogSearch request);
 
 }

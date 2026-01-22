@@ -9,6 +9,7 @@ import com.datn.viettel.dto.common.ExecutionResult;
 import com.datn.viettel.dto.common.ExecutionResultFactory;
 import com.datn.viettel.dto.request.ConversationEndRequest;
 import com.datn.viettel.dto.request.search.CommonSearch;
+import com.datn.viettel.dto.request.search.ConversationSearchRequest;
 import com.datn.viettel.exceptions.LogicException;
 import com.datn.viettel.repositories.core.MessageRepository;
 import com.datn.viettel.services.iservice.ConversationService;
@@ -37,16 +38,21 @@ public class ConversationController {
     public ResponseEntity<ExecutionResult<Map<String, Object>>> getConversationHistory(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) Short status,
+            @RequestParam(required = false) String type,
             HttpServletRequest http
     ) {
         if (page < 0 || size <= 0) {
             throw new LogicException(ResponseMessage.Common.INVALID_REQUEST);
         }
 
-        CommonSearch search = CommonSearch.builder()
+        ConversationSearchRequest search = ConversationSearchRequest.builder()
                 .page(page)
                 .size(size)
-                .fullData(false)
+                .rating(rating)
+                .status(status)
+                .type(type)
                 .build();
 
         Map<String, Object> data = conversationService.getConversations(search);

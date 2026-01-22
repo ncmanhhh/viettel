@@ -22,7 +22,7 @@ public interface ConversationService {
             String customerPhone
     );
 
-    Map<String, Object> getConversations(CommonSearch search);
+    Map<String, Object> getConversations(com.datn.viettel.dto.request.search.ConversationSearchRequest search);
 
     List<MessageDTO> getConversationDetail(String conversationId);
 

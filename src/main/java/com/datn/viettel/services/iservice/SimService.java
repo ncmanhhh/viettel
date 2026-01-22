@@ -22,6 +22,9 @@ public interface SimService {
 
     void toggleStatus(List<UUID> ids);
 
+
+    Sim create(com.datn.viettel.dto.request.SimCreateRequest request);
+
     Sim getById(UUID id);
 
 }

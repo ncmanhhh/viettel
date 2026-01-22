@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 public class RedisChatMemory implements ChatMemory {
 
     private static final String CHAT_MEMORY_PREFIX = "chat:memory:"; // Prefix key lưu chat memory trong Redis
-    private static final long TTL_MINUTES = 10;     // TTL (time-to-live – thời gian sống)
-    private static final int MAX_MESSAGES = 5;     // Giữ N message gần nhất (context window – cửa sổ ngữ cảnh)
+    private static final long TTL_MINUTES = 20;     // TTL (time-to-live – thời gian sống)
+    private static final int MAX_MESSAGES = 10;     // Giữ N message gần nhất (context window – cửa sổ ngữ cảnh)
 
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;

@@ -27,6 +27,12 @@ public interface FtthPackageService {
     void toggleStatus(List<UUID> ids);
 
 
+
+    /**
+     * Tạo mới gói FTTH
+     */
+    FtthPackage create(com.datn.viettel.dto.request.FtthPackageCreateRequest request);
+
     /**
      * Lấy chi tiết 1 gói FTTH
      */

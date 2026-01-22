@@ -73,4 +73,22 @@ public class FtthPackageController {
     public FtthPackageDTO detail(@PathVariable UUID id) {
         return ftthPackageService.getById(id);
     }
+
+    @PostMapping("/create")
+    public ResponseEntity<ExecutionResult<FtthPackage>> create(
+            @RequestBody @jakarta.validation.Valid com.datn.viettel.dto.request.FtthPackageCreateRequest body,
+            HttpServletRequest request
+    ) {
+        FtthPackage result = ftthPackageService.create(body);
+
+        return ResponseEntity.ok(
+                ExecutionResultFactory.success(
+                        result,
+                        "SUCCESS",
+                        "ftth.package.create.success",
+                        "Create FTTH package successfully",
+                        request.getRequestURI()
+                )
+        );
+    }
 }

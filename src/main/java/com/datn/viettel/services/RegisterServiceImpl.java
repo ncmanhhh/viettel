@@ -12,6 +12,7 @@ import com.datn.viettel.repositories.core.MobilePackageRepository;
 import com.datn.viettel.repositories.core.RegMobilePackageLogRepository;
 import com.datn.viettel.services.iservice.HttpService;
 import com.datn.viettel.services.iservice.RegisterService;
+import com.datn.viettel.utils.DataUtils;
 import com.datn.viettel.utils.IntegrationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @Slf4j
 @Service
 public class RegisterServiceImpl implements RegisterService {
@@ -117,21 +124,44 @@ public class RegisterServiceImpl implements RegisterService {
      * REPORT
      * ======================================================= */
     @Override
-    public List<RegMobilePackageLog> getMobilePackageReport(
+    public Map<String, Object> getMobilePackageReport(
             MobilePackageLogSearch request) {
 
-        return regMobilePackageLogRepository.findAllReport(
-                request.getCode(),
+        int page = Optional.ofNullable(request.getPage()).orElse(0);
+        int size = Optional.ofNullable(request.getSize()).orElse(20);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("request_at").descending());
+
+        LocalDateTime fromDate = null;
+        if (request.getFromDate() != null) {
+            fromDate = request.getFromDate().atStartOfDay();
+        }
+
+        LocalDateTime toDate = null;
+        if (request.getToDate() != null) {
+            toDate = request.getToDate().atTime(23, 59, 59);
+        }
+
+        String code = DataUtils.isNullOrBlank(request.getCode()) ? "" : request.getCode().trim();
+        String phoneNumber = DataUtils.isNullOrBlank(request.getPhoneNumber()) ? "" : request.getPhoneNumber().trim();
+
+        Page<RegMobilePackageLog> pageData = regMobilePackageLogRepository.findAllReport(
+                code,
                 request.getResult(),
                 request.getRegisterType(),
                 request.getPaymentType(),
-                request.getPhoneNumber(),
-                request.getFromDate() != null
-                        ? request.getFromDate().atStartOfDay()
-                        : null,
-                request.getToDate() != null
-                        ? request.getToDate().atTime(23, 59, 59)
-                        : null
+                phoneNumber,
+                fromDate,
+                toDate,
+                pageable
         );
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", pageData.getContent());
+        result.put("total", pageData.getTotalElements());
+        result.put("page", page);
+        result.put("size", size);
+
+        return result;
     }
 }

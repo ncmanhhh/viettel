@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+
+// Chỉ định bean để sử dụng RedisChatMemory / Lưu trữ trong Redis thay vì lưu trữ trong bộ nhớ máy
 @Configuration
 public class ChatMemoryConfig {
 

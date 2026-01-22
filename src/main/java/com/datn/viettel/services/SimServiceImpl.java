@@ -116,4 +116,31 @@ public class SimServiceImpl implements SimService {
                 .desVi(s.getDesVi())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public Sim create(com.datn.viettel.dto.request.SimCreateRequest request) {
+        Sim existing = simRepository.findByPhoneNumber(request.getPhoneNumber());
+        if (existing != null) {
+            throw new com.datn.viettel.exceptions.LogicException(com.datn.viettel.common.ResponseMessage.Common.ALREADY_EXISTS, request.getPhoneNumber());
+        }
+
+        Sim sim = Sim.builder()
+                .phoneNumber(request.getPhoneNumber())
+                .simType(request.getSimType())
+                .numberType(request.getNumberType())
+                .price(request.getPrice())
+                .promotionPrice(request.getPromotionPrice())
+                .desVi(request.getDesVi())
+                .status(request.getStatus())
+                .isEmbed(Constants.Status.INACTIVE)
+                .build();
+
+        sim.setCreatedAt(java.time.LocalDateTime.now());
+        sim.setUpdatedAt(java.time.LocalDateTime.now());
+        sim.setCreatedBy("ADMIN");
+        sim.setUpdatedBy("ADMIN");
+
+        return simRepository.save(sim);
+    }
 }

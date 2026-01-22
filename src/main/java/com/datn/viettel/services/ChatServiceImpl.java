@@ -182,7 +182,7 @@ public class ChatServiceImpl implements ChatService {
         // advancedPrompt lấy từ các tin nhắn trước đó nếu có
         // prompt thông thường là prompt mới từ người dùng
         String originalPrompt = DataUtils.isNullOrBlank(request.getAdvancedPrompt()) ? request.getPrompt().trim() : request.getAdvancedPrompt();
-        CompletableFuture<Map<String, Object>> aiQueryFuture; // Tương lai bất đồng bộ để lấy dữ liệu truy vấn AI
+        CompletableFuture<Map<String, Object>> aiQueryFuture; // bất đồng bộ để lấy dữ liệu truy vấn AI
         if (Constants.ServiceType.MOBILE_PACKAGE.equals(chatType)) {
             aiQueryFuture = CompletableFuture.supplyAsync(() -> {
                 String responsePrompt = "";
@@ -205,7 +205,7 @@ public class ChatServiceImpl implements ChatService {
                 String responsePrompt = "";
                 Map<String, Object> result = null;
                 try {
-                    responsePrompt = ChatClient.create(this.chatModel)
+                    responsePrompt = ChatClient.create(this.chatModel) // Tạo client chat với mô hình đã cấu hình
                             .prompt(originalPrompt)
                             .system(Constants.SystemPromptQuery.FTTH_PACKAGE)
                             .call()
@@ -237,11 +237,11 @@ public class ChatServiceImpl implements ChatService {
         } else {
             throw new LogicException(ResponseMessage.Chat.UNSUPPORTED_CHAT_TYPE);
         }
-        Map<String, Object> mapResponsePrompt = aiQueryFuture.join();
-        String index = getVectorIndexByType(chatType);
+        Map<String, Object> mapResponsePrompt = aiQueryFuture.join(); // Chờ và lấy kết quả truy vấn AI
+        String index = getVectorIndexByType(chatType); // Lấy tên vector index dựa trên loại chat
         Map<String, Object> elasResult = null;
-        if (mapResponsePrompt != null) {
-            elasResult = buildToolContext(index, new float[0], mapResponsePrompt, chatType);
+        if (mapResponsePrompt != null) { //Nếu có phản hồi từ AI
+            elasResult = buildToolContext(index, new float[0], mapResponsePrompt, chatType); //Xây dựng ngữ cảnh công cụ với truy vấn từ AI
             log.info("First buildToolContext - moreInfo size: {}", (elasResult.get("moreInfo")) instanceof List<?> list ? list.size() : 0);
         } else {
             float[] promptInVector = embeddingCache.computeIfAbsent(originalPrompt, prompt -> {
@@ -361,7 +361,7 @@ public class ChatServiceImpl implements ChatService {
         return new MessageChatDTO();
     }
 
-    // Hàm phát sự kiện lưu chat một cách bất đồng bộ
+    // Hàm phát sự kiện lưu chat
     //    @Async("chat-async-executor")
     protected void publishEventAsync(String conversationId, String userPrompt, String aiResponse, LocalDateTime requestTime) {
         try {

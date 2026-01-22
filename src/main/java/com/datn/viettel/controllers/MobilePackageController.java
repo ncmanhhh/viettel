@@ -75,6 +75,25 @@ public class MobilePackageController {
 
 
 
+
+    @PostMapping("/create")
+    public ResponseEntity<ExecutionResult<MobilePackage>> create(
+            @RequestBody @Valid com.datn.viettel.dto.request.MobilePackageCreateRequest body,
+            HttpServletRequest request
+    ) {
+        MobilePackage result = mobilePackageService.create(body);
+
+        return ResponseEntity.ok(
+                ExecutionResultFactory.success(
+                        result,
+                        "SUCCESS",
+                        "mobile.package.create.success",
+                        "Create mobile package successfully",
+                        request.getRequestURI()
+                )
+        );
+    }
+
     @PatchMapping("/toggle-status")
     public ResponseEntity<ExecutionResult<Void>> toggleStatus(
             @RequestBody List<UUID> ids,

@@ -4,10 +4,17 @@ spring:
     code: CHATBOT_AI
     version: 0.0.1-SNAPSHOT
     provider: NCMANH
+
   datasource:
     jdbcUrl: jdbc:postgresql://103.149.28.134:3637/viettel
     username: manhdb9999
     password: manhdb9999
+
+  datasource-secondary:
+    jdbcUrl: localhost:5432/viettel_shop
+    username: postgres
+    password:
+
   redis:
     host: localhost
     port: 6379

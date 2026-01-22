@@ -14,6 +14,7 @@ import java.util.UUID;
 public interface FtthPackageRepository extends JpaRepository<FtthPackage, UUID> {
     List<FtthPackage> findByStatusAndIsEmbed(Short status, Short isEmbed, Pageable pageable);
     List<FtthPackage> findByStatus(Short status);
+    FtthPackage findByCode(String code);
 
     @Query(
             value = """

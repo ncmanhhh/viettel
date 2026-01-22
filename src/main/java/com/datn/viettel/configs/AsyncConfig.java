@@ -39,19 +39,20 @@ public class AsyncConfig {
         return ex;
     }
 
+    // Executor for chat processing tasks
     @Bean(name = "chat-async-executor")
     public Executor chatProcessingExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(50);
-        executor.setMaxPoolSize(100);
-        executor.setQueueCapacity(200);
-        executor.setThreadNamePrefix("chat-async-");
-        executor.setKeepAliveSeconds(300);
-        executor.setAllowCoreThreadTimeOut(true);
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(120);
-        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
-        executor.initialize();
+        executor.setCorePoolSize(50); //Chỉnh số luồng tối thiểu
+        executor.setMaxPoolSize(100); // Chỉnh số luồng tối đa
+        executor.setQueueCapacity(200); // Chỉnh sức chứa hàng đợi
+        executor.setThreadNamePrefix("chat-async-"); // Tiền tố tên luồng
+        executor.setKeepAliveSeconds(300); // Thời gian chờ trước khi kết thúc luồng không hoạt động
+        executor.setAllowCoreThreadTimeOut(true); // Cho phép luồng cốt lõi hết thời gian chờ
+        executor.setWaitForTasksToCompleteOnShutdown(true); // Chờ hoàn thành nhiệm vụ khi tắt
+        executor.setAwaitTerminationSeconds(120); // Thời gian chờ tối đa khi tắt
+        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy()); // Chính sách từ chối nhiệm vụ
+        executor.initialize(); // Khởi tạo executor
         return executor;
     }
 

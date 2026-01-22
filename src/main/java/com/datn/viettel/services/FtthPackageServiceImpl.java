@@ -1,10 +1,14 @@
 package com.datn.viettel.services;
 
+import com.datn.viettel.common.Constants;
+import com.datn.viettel.common.ResponseMessage;
 import com.datn.viettel.dto.FtthPackageDTO;
 import com.datn.viettel.entities.core.FtthPackage;
+import com.datn.viettel.exceptions.LogicException;
 import com.datn.viettel.repositories.core.FtthPackageRepository;
 import com.datn.viettel.services.iservice.ElasticsearchService;
 import com.datn.viettel.services.iservice.FtthPackageService;
+import com.datn.viettel.utils.DataUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -61,7 +65,7 @@ public class FtthPackageServiceImpl implements FtthPackageService {
     @Override
     @Transactional
     public void toggleStatus(List<UUID> ids) {
-        if (com.datn.viettel.utils.DataUtils.isNullOrEmpty(ids)) {
+        if (DataUtils.isNullOrEmpty(ids)) {
             return;
         }
 
@@ -76,7 +80,7 @@ public class FtthPackageServiceImpl implements FtthPackageService {
         for (FtthPackage p : packages) {
             // 1. Toggle Status
             if (STATUS_ACTIVE.equals(p.getStatus())) {
-                p.setStatus(com.datn.viettel.common.Constants.Status.INACTIVE);
+                p.setStatus(Constants.Status.INACTIVE);
                 idsToDeleteFromEs.add(p.getId().toString());
             } else {
                 p.setStatus(STATUS_ACTIVE);
@@ -132,5 +136,38 @@ public class FtthPackageServiceImpl implements FtthPackageService {
         if (value == null || value.isBlank()) return null;
         long money = Long.parseLong(value);
         return String.format("%,dđ", money).replace(",", ".");
+    }
+
+    @Override
+    @Transactional
+    public FtthPackage create(com.datn.viettel.dto.request.FtthPackageCreateRequest request) {
+        FtthPackage existing = ftthPackageRepository.findByCode(request.getCode());
+        if (existing != null) {
+            throw new LogicException(ResponseMessage.Common.ALREADY_EXISTS, request.getCode());
+        }
+
+        FtthPackage ftthPackage = FtthPackage.builder()
+                .productId(System.currentTimeMillis())
+                .code(request.getCode())
+                .price(request.getPrice())
+                .promotionPrice(request.getPromotionPrice())
+                .speedInText(request.getSpeedInText())
+                .speed(request.getSpeed())
+                .groupName(request.getGroupName())
+                .cycle(request.getCycle())
+                .cycleRaw(request.getCycleRaw())
+                .promotionVi(request.getPromotionVi())
+                .shortDesVi(request.getShortDesVi())
+                .priority(request.getPriority())
+                .status(request.getStatus())
+                .isEmbed(com.datn.viettel.common.Constants.Status.INACTIVE)
+                .build();
+
+        ftthPackage.setCreatedAt(java.time.LocalDateTime.now());
+        ftthPackage.setUpdatedAt(java.time.LocalDateTime.now());
+        ftthPackage.setCreatedBy("ADMIN");
+        ftthPackage.setUpdatedBy("ADMIN");
+
+        return ftthPackageRepository.save(ftthPackage);
     }
 }

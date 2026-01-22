@@ -8,6 +8,7 @@ public class ResponseMessage {
         public static final String INTERGRATION_SYSTEM_ERROR = "intergration.system.error";
         public static final String INVALID_REQUEST = "invalid.request";
         public static final String PACKAGE_NOT_FOUND = "package.not.found";
+        public static final String ALREADY_EXISTS = "object.already.exists";
 
         private Common() {
         }
