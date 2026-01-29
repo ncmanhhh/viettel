@@ -66,6 +66,7 @@ public class PgVectorFloatArrayType implements UserType<float[]> {
         st.setObject(index, pg);
     }
 
+    //Hàm sao chép mảng float
     @Override
     public float[] deepCopy(float[] value) {
         return value == null ? null : Arrays.copyOf(value, value.length);

@@ -12,6 +12,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import java.util.Locale;
 import java.util.Objects;
 
+//Lớp LocaleInterceptor để thiết lập ngôn ngữ cho mỗi yêu cầu dựa trên tiêu đề yêu cầu hoặc mặc định
 public class LocaleInterceptor implements HandlerInterceptor {
 
     @Override

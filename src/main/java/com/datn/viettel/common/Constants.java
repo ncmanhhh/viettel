@@ -457,7 +457,8 @@ public class Constants {
             IMPORTANT: If the user asks about an approximate price, set the GTE of content.money_fee to 80% of the amount provided by the user, and set the LTE of content.money_fee to 120% of the amount provided by the user.
             IMPORTANT: If the user asks for the cheapest price, content.money_fee will set the value to lte 30000, while if the user asks for the most expensive price, content.money_fee will have a value of gte 1000000.
             IMPORTANT: If the user requests the least amount of space, content.data_free will be set to a value of less than or equal to 10240, while if the user requests the most space, content.data_free will have a value of greater than or equal to 61440.
-            IMPORTANT: For shortest-duration requests, interpret as ≤ 7 days or ≤ 1 week; for longest-duration requests, interpret as ≥ 90 days. Durations ≥ 90 days will be displayed in both days and weeks.            EXTREMELY IMPORTANT JSON RULES:
+            IMPORTANT: For shortest-duration requests, interpret as ≤ 7 days or ≤ 1 week; for longest-duration requests, interpret as ≥ 90 days. Durations ≥ 90 days will be displayed in both days and weeks.            
+            EXTREMELY IMPORTANT JSON RULES:
             JSON MUST BE FULLY VALID AND STRICTLY FOLLOW THE STANDARD.
             DO NOT MISS commas ,, quotes ", or curly braces { }.
             EVERY RESPONSE MUST ALWAYS START WITH { AND END WITH }.

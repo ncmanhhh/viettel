@@ -32,7 +32,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
 
     private static final Header JSON = new BasicHeader("Content-Type", "application/json");
     private static final Header NDJSON = new BasicHeader("Content-Type", "application/x-ndjson");
-    private final RestClient restClient;
+    private final RestClient restClient; // Elasticsearch REST client
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final ElasticsearchResultMapper resultMapper;
@@ -297,7 +297,6 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
     }
 
 
-    // Tìm kiếm tương đồng cosine similarity
     @NotNull
     private static Map<String, Object> getStringObjectMap(float[] queryVector, String field) {
         Map<String, Object> script = Map.of(

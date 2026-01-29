@@ -6,9 +6,9 @@ spring:
     provider: NCMANH
 
   datasource:
-    jdbcUrl: jdbc:postgresql://103.149.28.134:3637/viettel
-    username: manhdb9999
-    password: manhdb9999
+    jdbcUrl: jdbc:postgresql://103.149.28.134:5433/viettel
+    username: postgres
+    password: manhdb
 
   datasource-secondary:
     jdbcUrl: localhost:5432/viettel_shop
@@ -50,9 +50,9 @@ spring:
       last-message-prompt: 5
       provider: gemini
       vector-top:
-        mobile-package: 5
-        ftth-package: 5
-        sim: 50
+        mobile-package: 3
+        ftth-package: 3
+        sim: 10
       vector-score: 1.7
       vector-index:
         mobile-package: "mobile_packages"

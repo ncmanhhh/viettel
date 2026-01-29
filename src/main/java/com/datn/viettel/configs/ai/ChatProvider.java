@@ -36,6 +36,7 @@ public class ChatProvider {
         return geminiChatModel;
     }
 
+    // Hàm record để lưu trữ cấu hình chat
     public record ChatConfig(
             String model,
             Integer maxTokens,

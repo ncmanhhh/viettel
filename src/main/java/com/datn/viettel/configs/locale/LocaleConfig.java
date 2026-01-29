@@ -11,9 +11,11 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import java.util.Locale;
 
+// Cấu hình Locale cho ứng dụng, bao gồm việc thiết lập LocaleResolver và các Interceptor liên quan đến ngôn ngữ
 @Configuration
 public class LocaleConfig implements WebMvcConfigurer {
 
+    // Định nghĩa LocaleResolver sử dụng SessionLocaleResolver với ngôn ngữ mặc định là tiếng Anh
     @Bean
     public LocaleResolver localeResolver() {
         SessionLocaleResolver sessionLocaleResolver = new SessionLocaleResolver();
@@ -21,6 +23,7 @@ public class LocaleConfig implements WebMvcConfigurer {
         return sessionLocaleResolver;
     }
 
+    // Định nghĩa LocaleChangeInterceptor để thay đổi ngôn ngữ dựa trên tham số "lang" trong yêu cầu
     @Bean
     public LocaleChangeInterceptor localeChangeInterceptor() {
         LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
@@ -28,6 +31,7 @@ public class LocaleConfig implements WebMvcConfigurer {
         return localeChangeInterceptor;
     }
 
+    // Đăng ký các Interceptor vào hệ thống
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(localeChangeInterceptor());

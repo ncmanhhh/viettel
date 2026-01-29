@@ -7,7 +7,6 @@ import com.datn.viettel.dto.MessageChatDTO;
 import com.datn.viettel.dto.request.ChatRequest;
 import com.datn.viettel.dto.request.ConversationCreateRequest;
 import com.datn.viettel.exceptions.LogicException;
-import com.datn.viettel.repositories.core.ChatbotRepository;
 import com.datn.viettel.services.iservice.*;
 import com.datn.viettel.utils.DataUtils;
 import com.datn.viettel.utils.LanguageUtils;
@@ -46,10 +45,10 @@ public class ChatServiceImpl implements ChatService {
     private final ConversationService conversationService;
     private final CacheService cacheService;
     private final ChatModel chatModel;
-    private final ObjectMapper objectMapper;
-    private final Map<String, float[]> embeddingCache = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper; // Đối tượng để chuyển đổi giữa các định dạng dữ liệu
+    private final Map<String, float[]> embeddingCache = new ConcurrentHashMap<>(); // Bộ nhớ đệm , new ConcurrentHashMap<>(); nghĩa là sử dụng một ConcurrentHashMap để lưu trữ các vector nhúng
     private final Map<String, Map<String, Object>> toolContextCache = new ConcurrentHashMap<>();
-    private final ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher; // Đối tượng để phát sự kiện trong ứng dụng
 
     @Autowired
     public ChatServiceImpl(Environment env,
@@ -57,7 +56,6 @@ public class ChatServiceImpl implements ChatService {
                            Executor chatExecutor,
                            AIService aiService,
                            ElasticsearchService elasticsearchService,
-                           ChatbotRepository chatbotRepository,
                            ChatMemory chatMemory,
                            ConversationService conversationService,
                            CacheService cacheService,
@@ -83,11 +81,11 @@ public class ChatServiceImpl implements ChatService {
         String vectorIndex = getVectorIndexByType(chatType); // Lấy tên vector index dựa trên loại chat
 //        String conversationId = conversationService.prepareConversationId(request.getConversationId(), chatType, vectorIndex); // Chuẩn bị conversationId
 
-        ConversationCreateRequest convReq = ConversationCreateRequest.builder()
+        ConversationCreateRequest convReq = ConversationCreateRequest.builder() // Tạo yêu cầu tạo cuộc trò chuyện
                 .conversationId(request.getConversationId())
                 .customerPhone(request.getCustomerPhone())
                 .prompt(request.getPrompt())
-                .build();
+                .build(); // Tạo yêu cầu tạo cuộc trò chuyện
 
         String conversationId = conversationService.createConversation(
                 convReq,
@@ -165,10 +163,11 @@ public class ChatServiceImpl implements ChatService {
                 List<Message> recentMessages = existingMessages.subList(fromIndex, size);
                 request.setAdvancedPrompt(
                         recentMessages.stream()
-                                .filter(msg -> msg instanceof UserMessage)
+                                .filter(msg -> msg instanceof UserMessage) //Chinh lọc chỉ lấy tin nhắn của người dùng
                                 .map(msg -> "User: " + msg.getText())
                                 .collect(Collectors.joining("\n")) + "\nUser: " + originalPrompt
                 );
+                log.info("Advanced prompt: {}", request.getAdvancedPrompt());
                 return recentMessages;
             }
         }
@@ -178,11 +177,10 @@ public class ChatServiceImpl implements ChatService {
     // Hàm xử lý truy vấn của người dùng và lấy dữ liệu cần thiết
     @SuppressWarnings("unchecked") //Đánh dấu để bỏ qua cảnh báo kiểu không kiểm tra
     private ChatProcessingData processUserQuery(ChatRequest request, Short chatType) {
-        // Xác định prompt gốc dựa trên advancedPrompt hoặc prompt thông thường
+        // Xác định prompt gốc dựa trên advancedPrompt hoặc prompt mơi
         // advancedPrompt lấy từ các tin nhắn trước đó nếu có
-        // prompt thông thường là prompt mới từ người dùng
-        String originalPrompt = DataUtils.isNullOrBlank(request.getAdvancedPrompt()) ? request.getPrompt().trim() : request.getAdvancedPrompt();
-        CompletableFuture<Map<String, Object>> aiQueryFuture; // bất đồng bộ để lấy dữ liệu truy vấn AI
+        String originalPrompt = DataUtils.isNullOrBlank(request.getAdvancedPrompt()) ? request.getPrompt().trim() : request.getAdvancedPrompt(); // Lấy prompt
+        CompletableFuture<Map<String, Object>> aiQueryFuture; // Lây phản hồi từ AI (Json Object)
         if (Constants.ServiceType.MOBILE_PACKAGE.equals(chatType)) {
             aiQueryFuture = CompletableFuture.supplyAsync(() -> {
                 String responsePrompt = "";
@@ -244,9 +242,9 @@ public class ChatServiceImpl implements ChatService {
             elasResult = buildToolContext(index, new float[0], mapResponsePrompt, chatType); //Xây dựng ngữ cảnh công cụ với truy vấn từ AI
             log.info("First buildToolContext - moreInfo size: {}", (elasResult.get("moreInfo")) instanceof List<?> list ? list.size() : 0);
         } else {
-            float[] promptInVector = embeddingCache.computeIfAbsent(originalPrompt, prompt -> {
+            float[] promptInVector = embeddingCache.computeIfAbsent(originalPrompt, prompt -> { // Tính toán vector
                 float[] vector = aiService.embeddingVectorV2(prompt);
-                if (embeddingCache.size() > 2000) {
+                if (embeddingCache.size() > 2000) { //Nếu bộ nhớ đệm vượt quá 2000 mục, xóa 1/4 mục cũ nhất
                     embeddingCache.entrySet().stream()
                             .limit(embeddingCache.size() / 4)
                             .map(Map.Entry::getKey)
@@ -270,8 +268,31 @@ public class ChatServiceImpl implements ChatService {
                 (query != null ? query.hashCode() : 0);
         Map<String, Object> cachedResult = toolContextCache.get(cacheKey); // Kiểm tra xem kết quả đã được lưu trong cache chưa
         if (cachedResult != null) {
+            log.info("""
+        [TOOL-CACHE HIT]
+        key = {}
+        contentFull.length = {}
+        moreInfo.size = {}
+        """,
+                    cacheKey,
+                    String.valueOf(cachedResult.get("contentFull")).length(),
+                    cachedResult.get("moreInfo") instanceof List<?> list ? list.size() : 0
+            );
             return cachedResult; // Nếu có, trả về kết quả từ cache
         }
+
+        log.info("""
+    [TOOL-CACHE MISS]
+    key = {}
+    index = {}
+    vectorHash = {}
+    queryHash = {}
+    """,
+                cacheKey,
+                index,
+                Arrays.hashCode(promptInVector),
+                query != null ? query.hashCode() : 0
+        );
 
         int vectorTop = getVectorTopByType(chatType); // Lấy số lượng vector top dựa trên loại chat
         Object vectorSearchResult = elasticsearchService.searchByVector(
@@ -281,11 +302,11 @@ public class ChatServiceImpl implements ChatService {
                 "contentVector", query); // Thực hiện tìm kiếm vector trong Elasticsearch
         if (vectorSearchResult == null) {
             Map<String, Object> emptyResult = Map.of("contentFull", "", "moreInfo", Collections.emptyList());
-            toolContextCache.put(cacheKey, emptyResult);
+            toolContextCache.put(cacheKey, emptyResult); // Lưu kết quả rỗng vào cache
             return emptyResult; // Nếu không có kết quả, trả về kết quả rỗng
         }
         try {
-            Map<String, Object> vectorResult = (Map<String, Object>) objectMapper.convertValue(vectorSearchResult, Map.class);
+            Map<String, Object> vectorResult = (Map<String, Object>) objectMapper.convertValue(vectorSearchResult, Map.class); // Chuyển đổi kết quả tìm kiếm sang dạng Map
             Map<String, Object> hitsMap = objectMapper.convertValue(
                     vectorResult.get("hits"), new TypeReference<>() {
                     });

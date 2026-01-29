@@ -5,6 +5,7 @@ import com.datn.viettel.common.Constants;
 import com.datn.viettel.services.iservice.CacheService;
 import com.datn.viettel.services.iservice.RedisService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ public class CacheServiceImpl implements CacheService {
     private final RedisService redisService;
 
     @Override
+    @Cacheable(value = "systemPrompts", key = "#chatType + '_' + #language")
     public String getSystemPrompt(Short chatType, String language) {
         String configKey = getSystemPromptConfigKey(chatType);
         return redisService.getConfigValue(configKey, language, Constants.Common.SYSTEM_PROMPT);
